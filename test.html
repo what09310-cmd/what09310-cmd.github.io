@@ -8,6 +8,8 @@
 <meta property="og:description" content="Suivi des annonces de location en Thaïlande">
 <meta property="og:image" content="/static/logo.png">
 <meta property="og:type" content="website">
+<link rel="stylesheet" href="/static/css/modal.css">
+<link rel="stylesheet" href="/static/css/common.css">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -65,22 +67,6 @@
     min-height: 100vh;
   }
 
-  .visually-hidden {
-    position: absolute;
-    width: 1px; height: 1px;
-    padding: 0; margin: -1px;
-    overflow: hidden;
-    clip: rect(0,0,0,0);
-    white-space: nowrap;
-    border: 0;
-  }
-
-  :focus-visible {
-    outline: 2px solid var(--focus);
-    outline-offset: 2px;
-    border-radius: 4px;
-  }
-
   /* ── Header ── */
   header {
     padding: 16px 28px;
@@ -104,275 +90,13 @@
     display: block;
   }
 
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-  }
-  .hstat {
-    font-variant-numeric: tabular-nums;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-  }
-  .hstat b { color: var(--text); }
-
   /* ── Barre de villes ── */
-  .city-bar {
-    padding: 14px 28px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    background: var(--surface);
-  }
-  .city-bar::-webkit-scrollbar { display: none; }
-
-
-  .location-filters { display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
-  .location-filter { display:flex; align-items:center; gap:8px; }
-  .city-select {
-    min-width:240px; background:var(--card); border:1px solid var(--border);
-    border-radius:var(--r-pill); color:var(--text); font-family:var(--sans);
-    font-size:13px; padding:9px 12px; outline:none; cursor:pointer;
-  }
-  .city-select:focus { border-color:var(--accent); }
-  .city-select:disabled { opacity:.5; cursor:not-allowed; }
-
-  .city-label {
-    font-size: 11px;
-    font-family: var(--mono);
-    letter-spacing: .05em;
-    color: var(--dim);
-    white-space: nowrap;
-    margin-right: 4px;
-    flex-shrink: 0;
-  }
-
-  .btn-new24h {
-    display: flex; align-items: center; justify-content: center; gap: 6px;
-    width: 100%; padding: 9px 14px; border-radius: var(--r-pill);
-    border: 1px solid var(--border); background: var(--card);
-    color: var(--muted); font-family: var(--sans);
-    font-size: 13px; font-weight: 500; cursor: pointer;
-    white-space: nowrap; flex-shrink: 0; transition: all .15s;
-  }
-  .btn-new24h:hover { border-color: var(--purple); color: var(--text); }
-  .btn-new24h.active { background: var(--purple); border-color: var(--purple); color: #fff; font-weight: 700; }
-  .btn-new24h .new24h-count { font-family: var(--mono); font-size: 10px; opacity: .75; }
-
 
   /* ── Layout ── */
-  .shell {
-    display: grid;
-    grid-template-columns: 260px 1fr;
-    min-height: calc(100vh - 101px);
-  }
 
   /* ── Sidebar ── */
-  .sidebar {
-    border-right: 1px solid var(--border);
-    padding: 24px 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 28px;
-    position: sticky;
-    top: 101px;
-    height: calc(100vh - 101px);
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
-  }
-
-  .filter-section { display: flex; flex-direction: column; gap: 9px; }
-
-  .filter-label {
-    font-size: 11px;
-    font-family: var(--mono);
-    letter-spacing: .15em;
-    text-transform: uppercase;
-    color: var(--dim);
-  }
-
-  .filter-input {
-    width: 100%;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 12px;
-    padding: 8px 10px;
-    outline: none;
-    transition: border-color .15s;
-  }
-  .filter-input:focus { border-color: var(--accent); }
-
-  .price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-
-  .slider-wrap { display: flex; flex-direction: column; gap: 4px; }
-  .slider-wrap input[type=range] { width: 100%; accent-color: var(--accent); }
-  .slider-info {
-    display: flex;
-    justify-content: space-between;
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-  }
-
-  .toggle-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 4px 0;
-  }
-  .toggle-row span { font-size: 12px; color: var(--text); }
-
-  .toggle { position: relative; width: 34px; height: 18px; }
-  .toggle input { opacity: 0; width: 0; height: 0; }
-  .toggle-track {
-    position: absolute; inset: 0;
-    background: #cfc9bf;
-    border-radius: 18px;
-    cursor: pointer;
-    transition: background .2s;
-  }
-  .toggle-track::before {
-    content: "";
-    position: absolute;
-    width: 12px; height: 12px;
-    left: 3px; top: 3px;
-    background: #fff;
-    border-radius: 50%;
-    transition: transform .2s;
-  }
-  .toggle input:checked + .toggle-track { background: var(--green); }
-  .toggle input:checked + .toggle-track::before { transform: translateX(16px); }
-  .toggle input:focus-visible + .toggle-track { outline: 2px solid var(--focus); outline-offset: 2px; }
-  .toggle-blue input:checked + .toggle-track { background: var(--blue); }
-  .toggle-purple input:checked + .toggle-track { background: var(--purple); }
-
-  .btn-reset {
-    width: 100%;
-    padding: 9px;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--muted);
-    font-size: 12px;
-    font-family: var(--mono);
-    cursor: pointer;
-    transition: all .15s;
-    margin-top: 4px;
-  }
-  .btn-reset:hover { border-color: var(--text); color: var(--text); }
-
-  .btn-premium {
-    width: 100%;
-    padding: 10px;
-    background: var(--accent);
-    border: 1px solid var(--accent);
-    border-radius: var(--r-pill);
-    color: var(--accent-ink);
-    font-size: 12px;
-    font-weight: 700;
-    font-family: var(--sans);
-    text-decoration: none;
-    text-align: center;
-    display: block;
-    cursor: pointer;
-    transition: opacity .15s;
-  }
-  .btn-premium:hover { opacity: .85; }
-
-  /* ── Main ── */
-  .main {
-    padding: 24px 28px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .result-info {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--muted);
-  }
-  .result-info b { color: var(--accent); font-size: 14px; }
-
-  .sort-select {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 12px;
-    padding: 6px 10px;
-    outline: none;
-    cursor: pointer;
-  }
 
   /* ── Grille ── */
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 16px;
-  }
-
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--r-card);
-    overflow: hidden;
-    cursor: pointer;
-    transition: border-color .15s, box-shadow .15s;
-    display: flex;
-    flex-direction: column;
-  }
-  .card:hover, .card:focus-visible {
-    border-color: var(--accent);
-    box-shadow: 0 10px 30px rgba(20,19,15,.10);
-  }
-
-  .card-img {
-    height: 150px;
-    background: var(--border);
-    position: relative;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-  .card-img img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    transform: scaleX(-1);
-    -webkit-user-drag: none;
-    user-select: none;
-    -webkit-touch-callout: none;
-  }
-  .card-img .no-img {
-    width: 100%; height: 100%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 32px; color: var(--muted);
-  }
-
-  .modal-gallery {
-    display: flex;
-    flex-shrink: 0;
-    height: 220px;
-    gap: 8px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    margin: 0 -18px 4px;
-    padding: 0 18px;
-  }
   .modal-gallery-item {
     position: relative;
     flex-shrink: 0;
@@ -402,51 +126,6 @@
     border-radius: var(--r-pill);
     letter-spacing: .04em;
   }
-  .badge-monthly { top: 8px; left: 8px; background: var(--green); color: #fff; }
-  .badge-verified { top: 8px; right: 8px; background: var(--blue); color: #fff; }
-  .badge-term-3 { background: var(--blue); color: #fff; }
-  .badge-term-6 { background: var(--purple); color: #fff; }
-
-  .card-badge-slot { padding: 8px 14px 0; height: 25px; box-sizing: border-box; display: flex; align-items: center; gap: 4px; }
-
-  .card-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
-
-  .card-name {
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .card-loc {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    flex-wrap: wrap;
-  }
-  .loc-district {
-    background: rgba(80,70,245,.10);
-    color: var(--blue);
-    border-radius: var(--r-pill);
-    padding: 2px 9px;
-    font-family: var(--mono);
-    font-size: 10px;
-    font-weight: 600;
-  }
-  .loc-province {
-    font-size: 11px;
-    color: var(--muted);
-  }
-
-  .card-contracts {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 4px;
-    margin-top: auto;
-  }
   .cc {
     background: var(--bg);
     border: 1px solid var(--border);
@@ -460,67 +139,6 @@
     text-align: center;
     min-width: 0;
   }
-  .cc-label {
-    font-size: 9px;
-    font-family: var(--mono);
-    text-transform: uppercase;
-    letter-spacing: .05em;
-    color: var(--muted);
-    margin-bottom: 0;
-  }
-  .cc-val {
-    font-variant-numeric: tabular-nums;
-    font-family: var(--mono);
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--accent);
-    line-height: 1.3;
-    overflow-wrap: break-word;
-    max-width: 100%;
-  }
-  .cc-val.na { color: var(--muted); font-weight: 400; font-size: 11px; }
-
-  .card-date {
-    font-size: 10px;
-    font-family: var(--mono);
-    color: var(--muted);
-  }
-
-  /* ── States ── */
-  .state-box {
-    display: flex; align-items: center; justify-content: center;
-    height: 220px; color: var(--muted);
-    font-family: var(--mono); font-size: 13px; gap: 10px;
-    flex-direction: column;
-  }
-  .spinner {
-    width: 20px; height: 20px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin .7s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* ── Pagination ── */
-  .pager {
-    display: flex; align-items: center; justify-content: center; gap: 5px;
-    padding: 8px 0;
-  }
-  .pager button {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 12px;
-    padding: 5px 11px;
-    cursor: pointer;
-    transition: border-color .15s;
-  }
-  .pager button:hover:not(:disabled) { border-color: var(--accent); }
-  .pager button.on { border-color: var(--accent); color: var(--accent); }
-  .pager button:disabled { opacity: .3; cursor: default; }
 
   /* ── Modal ── */
   .overlay {
@@ -533,7 +151,6 @@
     justify-content: center;
     padding: 20px;
   }
-  .overlay.open { display: flex; }
 
   .lightbox-overlay {
     position: fixed; inset: 0;
@@ -546,11 +163,6 @@
     cursor: zoom-out;
   }
   .lightbox-overlay.open { display: flex; }
-  .lightbox-content {
-    position: relative;
-    max-width: 95vw;
-    max-height: 95vh;
-  }
   .lightbox-content img#lightbox-img {
     display: block;
     max-width: 95vw;
@@ -565,54 +177,8 @@
     -webkit-touch-callout: none;
     cursor: default;
   }
-  .lightbox-close {
-    position: fixed;
-    top: 20px; right: 20px;
-    background: rgba(0,0,0,.5);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: #fff;
-    width: 32px; height: 32px;
-    cursor: pointer;
-    font-size: 16px;
-    display: flex; align-items: center; justify-content: center;
-    transition: color .15s;
-  }
-  .lightbox-close:hover { color: var(--accent); }
-  .lightbox-nav {
-    position: fixed;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(0,0,0,.5);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: #fff;
-    width: 44px; height: 44px;
-    cursor: pointer;
-    font-size: 26px;
-    line-height: 1;
-    display: flex; align-items: center; justify-content: center;
-    transition: color .15s;
-  }
-  .lightbox-nav:hover { color: var(--accent); }
-  .lightbox-nav[disabled] { display: none; }
   .lightbox-prev { left: 20px; }
   .lightbox-next { right: 20px; }
-
-  .modal {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--r-card);
-    width: 100%; max-width: 600px;
-    max-height: 88vh;
-    overflow-y: auto;
-    padding: 24px;
-    display: flex; flex-direction: column; gap: 18px;
-  }
-
-  .modal-top {
-    display: flex; justify-content: flex-end; align-items: flex-start; gap: 12px;
-  }
   .modal-close {
     background: none; border: 1px solid var(--border);
     border-radius: 6px; color: var(--muted);
@@ -621,167 +187,11 @@
     display: flex; align-items: center; justify-content: center;
     transition: color .15s;
   }
-  .modal-close:hover { color: var(--text); }
-
-  .modal-tags { display: flex; gap: 6px; flex-wrap: wrap; }
-  .tag {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    padding: 3px 10px;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-  }
-  .tag.green { border-color: var(--green); color: var(--green); }
-
-  .modal-contracts {
-    display: grid; grid-template-columns: 1fr; gap: 8px;
-  }
-  .mc {
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: var(--r-ctl); padding: 13px 16px;
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  }
-  .mc-label {
-    font-size: 9px; font-family: var(--mono);
-    text-transform: uppercase; letter-spacing: .08em;
-    color: var(--muted); margin-bottom: 0;
-  }
   .mc-val {
     font-variant-numeric: tabular-nums;
     font-size: 13px; font-weight: 700;
     font-family: var(--mono); color: var(--accent);
   }
-  .mc-val.na { color: var(--muted); font-weight: 400; font-size: 12px; }
-  .mc-room-label {
-    font-size: 10px; font-family: var(--mono); font-weight: 700;
-    text-transform: uppercase; letter-spacing: .08em;
-    color: var(--text); margin: 10px 0 -2px;
-  }
-  .mc-room-label:first-child { margin-top: 0; }
-  .mc-room-group {
-    border: 1px solid var(--border); border-radius: 8px;
-    padding: 12px; display: flex; flex-direction: column; gap: 8px;
-  }
-  .mc-room-group .mc-room-label { margin: 0; }
-  .mc-room-terms { display: flex; flex-wrap: wrap; gap: 8px; }
-  .mc-room-terms .mc { flex: 1 1 90px; flex-direction: column; align-items: flex-start; gap: 2px; }
-
-  .modal-amenities { display: flex; flex-wrap: wrap; gap: 5px; }
-  .amenity {
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: var(--r-pill); padding: 4px 10px;
-    font-size: 11px; color: var(--muted); font-family: var(--mono);
-  }
-
-  .section-head {
-    font-size: 10px; font-family: var(--mono);
-    letter-spacing: .1em; text-transform: uppercase;
-    color: var(--muted); margin-bottom: 8px;
-  }
-
-  .modal-link {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: var(--accent); color: var(--accent-ink);
-    font-weight: 700; font-size: 13px;
-    padding: 11px 22px; border-radius: var(--r-pill);
-    text-decoration: none; align-self: flex-start;
-    transition: opacity .15s;
-  }
-  .modal-link:hover { opacity: .85; }
-  a.mc-wa, a.mc-line {
-    text-decoration: none; color: inherit; cursor: pointer;
-    transition: background .15s, border-color .15s;
-  }
-  a.mc-wa:hover { background: #25D36615; border-color: #25D366; }
-  a.mc-line:hover { background: #06C75515; border-color: #06C755; }
-.card-categories {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-
-.amenity-badge {
-  display: inline-flex;
-  align-items: center;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--r-pill);
-  padding: 4px 9px;
-  font-family: var(--mono);
-  font-size: 9px;
-  color: var(--text);
-  white-space: nowrap;
-}
-  @media (max-width: 768px) {
-    .shell { grid-template-columns: 1fr; }
-    .sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
-    .grid { grid-template-columns: 1fr; }
-    .hstat { display: none; }
-  }
-
-  /* ── Filtre région (FAB) ── */
-  .region-fab-wrap { position: fixed; left: 24px; bottom: 24px; z-index: 50; }
-  .region-fab {
-    width: 52px; height: 52px;
-    border-radius: 50%;
-    background: var(--accent);
-    color: var(--accent-ink);
-    border: none;
-    font-size: 22px;
-    cursor: pointer;
-    box-shadow: 0 4px 16px rgba(0,0,0,.4);
-    display: flex; align-items: center; justify-content: center;
-    transition: transform .15s, background .15s;
-  }
-  .region-fab:hover { transform: scale(1.06); }
-  .region-fab.active { background: var(--blue); color: #fff; }
-  .region-menu {
-    position: absolute;
-    bottom: 64px; left: 0;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 6px;
-    display: none;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 190px;
-    box-shadow: 0 8px 24px rgba(0,0,0,.5);
-  }
-  .region-menu.open { display: flex; }
-  .region-item {
-    background: transparent;
-    border: none;
-    text-align: left;
-    padding: 9px 12px;
-    border-radius: 6px;
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 13px;
-    cursor: pointer;
-    transition: background .15s;
-  }
-  .region-item:hover { background: var(--bg); }
-  .region-item.active { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
-
-  /* ── Carte Phuket (FAB) ── */
-  .map-fab {
-    position: fixed; right: 24px; bottom: 24px; z-index: 50;
-    width: 52px; height: 52px;
-    border-radius: 50%;
-    background: var(--blue);
-    color: #fff;
-    border: none;
-    font-size: 22px;
-    cursor: pointer;
-    box-shadow: 0 4px 16px rgba(0,0,0,.4);
-    display: flex; align-items: center; justify-content: center;
-    text-decoration: none;
-    transition: transform .15s;
-  }
-  .map-fab:hover { transform: scale(1.06); }
 
   /* ══════════════════════════════════════════════════════════════════
      HERO — langage visuel triips : ciel pastel, navbar en pilule,
@@ -885,8 +295,6 @@
     font-size: 25px; font-weight: 800;
     letter-spacing: -.6px; line-height: 1;
   }
-  .brand-thai  { color: var(--brand-lime); }
-  .brand-month { color: var(--brand-gold); }
   .pillnav-cta {
     background: var(--accent); color: #fff;
     border-radius: var(--r-pill); padding: 10px 20px;
@@ -914,7 +322,7 @@
   }
   .hero-badge b { font-variant-numeric: tabular-nums; color: #14130f; }
 
-  @media (max-width: 768px) {
+  @media (max-width: 768px){
     .hero-badge { gap: 10px; padding: 9px 19px; font-size: 14px; }
     .hero-badge i { width: 9px; height: 9px; }
   }
@@ -928,13 +336,8 @@
   }
   .hero h1 em { font-style: normal; color: var(--accent); }
   .hero-line1 { white-space: nowrap; }
-  @media (max-width: 640px) {
+  @media (max-width: 640px){
     .hero-line1 { white-space: normal; }
-  }
-
-  .hero-sub {
-    margin: 18px auto 0; max-width: 540px;
-    font-size: 16px; line-height: 1.55; color: #5e584f;
   }
 
   .btn-cta {
@@ -1052,9 +455,8 @@
     font-size: 27px; font-weight: 700; line-height: 1.15;
     letter-spacing: -.6px; color: var(--accent);
   }
-  .deal-meta { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
-  @media (max-width: 768px) {
+  @media (max-width: 768px){
     .pillnav { padding-left: 16px; }
     .hero-inner { padding-top: 40px; }
     .hero-skyline { height: 116px; }
@@ -1063,7 +465,7 @@
     .deal-price b { font-size: 21px; }
     .deal-route { font-size: 21px; }
   }
-  @media (prefers-reduced-motion: reduce) {
+  @media (prefers-reduced-motion: reduce){
     .deal:hover { transform: none; }
   }
 
@@ -1163,7 +565,7 @@
   }
   .how-cta { margin-top: 0; }
 
-  @media (max-width: 900px) {
+  @media (max-width: 900px){
     .how { padding: 16px 20px 54px; }
     .how-grid { grid-template-columns: 1fr; gap: 40px; }
     .how-step-2 { margin-left: 14px; }
@@ -1242,11 +644,6 @@
     padding: 16px 18px 18px; color: #fff;
   }
   .wcard-loc { font-size: 19px; font-weight: 700; line-height: 1.2; letter-spacing: -.3px; }
-  .wcard-name {
-    font-size: 11px; line-height: 1.35; opacity: .86; margin-top: 3px;
-    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
   .wcard-terms { display: flex; gap: 6px; margin-top: 11px; }
   .wcard-term {
     background: rgba(255,255,255,.24);
@@ -1304,7 +701,7 @@
   .faq-answer p { margin: 0; }
   .faq-answer p + p { margin-top: 10px; }
 
-  @media (prefers-reduced-motion: reduce) {
+  @media (prefers-reduced-motion: reduce){
     .faq-chevron { transition: none; }
   }
 
@@ -1381,14 +778,14 @@
     border-radius: 999px; background: var(--border);
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 768px){
     .cta-final { padding: 70px 20px 78px; }
     .cta-final::before, .cta-final::after { width: 340px; height: 340px; }
     .footer-row { justify-content: center; text-align: center; }
     .footer-links, .footer-social { justify-content: center; gap: 10px 20px; }
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 768px){
     .faq { padding-bottom: 68px; }
     .faq-card summary { font-size: 15px; padding: 16px 18px; }
     .faq-answer { padding: 0 18px 18px; }
@@ -1398,7 +795,7 @@
     .wcard-price b { font-size: 16px; }
     .wcard-loc { font-size: 15px; }
   }
-  @media (prefers-reduced-motion: reduce) {
+  @media (prefers-reduced-motion: reduce){
     .wall-track { animation: none; }
     .wcard:hover { transform: none; }
   }
@@ -1408,7 +805,7 @@
 
 <!-- Navbar fixe : hors du hero, qui a overflow:hidden et la retiendrait. -->
 <nav class="pillnav" aria-label="Navigation principale">
-  <a class="pillnav-brand" href="/"><span class="brand-thai">Thai</span><span class="brand-month">Month</span></a>
+  <a class="pillnav-brand" href="/test"><span class="brand-thai">Thai</span><span class="brand-month">Month</span></a>
   <a class="pillnav-cta" href="payant.html">Version Payante</a>
 </nav>
 
@@ -1676,72 +1073,10 @@
   </div>
 </div>
 
+<script src="/static/js/common.js"></script>
+<script src="/static/js/geo.js"></script>
+<script src="/static/js/modal.js"></script>
 <script>
-const RENDER_API = "https://thai-month.onrender.com";
-const API = window.location.origin.startsWith("file:") ? "http://localhost:8000"
-          : window.location.hostname === "what09310-cmd.github.io" ? RENDER_API
-          : window.location.origin;
-
-const LINE_ICON_SVG = `<svg width="16" height="16" viewBox="0 0 24 24" style="flex-shrink:0"><rect width="24" height="24" rx="6" fill="#06C755"/><path fill="#fff" d="M12 5.5c-4.14 0-7.5 2.73-7.5 6.1 0 3.02 2.66 5.55 6.26 6.03.24.05.58.16.66.37.08.19.05.49.03.68l-.11.65c-.03.19-.15.75.65.41.8-.34 4.33-2.55 5.9-4.36 1.09-1.19 1.61-2.41 1.61-3.78 0-3.37-3.36-6.1-7.5-6.1Z"/></svg>`;
-const WHATSAPP_ICON_SVG = `<svg width="16" height="16" viewBox="0 0 24 24" style="flex-shrink:0"><rect width="24" height="24" rx="6" fill="#25D366"/><path fill="#fff" d="M12 5.3a6.7 6.7 0 0 0-5.72 10.18l-.78 2.85 2.92-.77A6.7 6.7 0 1 0 12 5.3Zm0 12.2a5.47 5.47 0 0 1-2.79-.76l-.2-.12-2.07.54.55-2.02-.13-.21a5.5 5.5 0 1 1 4.64 2.57Zm3.02-4.12c-.16-.08-.97-.48-1.12-.53-.15-.06-.26-.08-.37.08-.11.16-.42.53-.52.64-.1.11-.19.12-.36.04-.16-.08-.68-.25-1.3-.8-.48-.43-.8-.96-.9-1.12-.09-.16-.01-.25.07-.33.08-.07.16-.19.24-.28.08-.1.11-.16.16-.27.05-.11.03-.2-.01-.28-.05-.08-.37-.9-.51-1.23-.13-.32-.27-.28-.37-.28h-.31c-.11 0-.28.04-.42.2-.15.16-.55.54-.55 1.32s.57 1.53.65 1.64c.08.11 1.12 1.71 2.72 2.4.38.16.68.26.91.33.38.12.73.1 1-.06.31-.18.97-.4 1.1-.78.14-.39.14-.72.1-.79-.04-.07-.15-.11-.31-.19Z"/></svg>`;
-
-// Certaines fiches RentHub ont un WhatsApp qui n'est en fait qu'un indicatif
-// pays jamais complété par le loueur (ex: whatsapp="66", lien wa.me/66 casse
-// sur la page d'origine) : moins de 5 chiffres ne peut pas etre un numero
-// reel, donc pas la peine d'afficher la case Contact pour ca.
-function hasRealWhatsapp(raw) {
-  return !!raw && String(raw).replace(/\D/g, "").length >= 5;
-}
-
-// Affichage voulu: "(+66) 81 806 3131" — indicatif entre parenthèses, puis
-// le numéro thaï découpé 2-3-4 chiffres (format international standard des
-// mobiles thaïlandais). Les numéros hors format habituel (indicatif
-// étranger, longueur atypique) sont juste regroupés par 3 en repli.
-function formatWhatsapp(raw) {
-  const digits = String(raw || "").replace(/\D/g, "");
-  const cc = digits.slice(0, 2);
-  const rest = digits.slice(2);
-  const groups = rest.length === 9
-    ? [rest.slice(0, 2), rest.slice(2, 5), rest.slice(5, 9)]
-    : (rest.match(/.{1,3}/g) || []);
-  return `(+${cc}) ${groups.join(" ")}`;
-}
-
-// Icônes pour les 28 catégories d'équipements — voir src/normalizers/amenities.py.
-const AMENITY_ICONS = {
-  "Air Conditioner": "❄️ Air Conditioner",
-  "Furnished": "🛋️ Furnished",
-  "Water Heater": "🚿 Water Heater",
-  "Fan": "🌀 Fan",
-  "Television": "📺 Television",
-  "Refrigerator": "🧊 Refrigerator",
-  "Sofa": "🪑 Sofa",
-  "Desk": "🖥️ Desk",
-  "Kitchen Stove": "🍳 Kitchen Stove",
-  "Phone": "☎️ Phone",
-  "In-room WIFI": "📶 WIFI",
-  "Cable TV": "📺 TV",
-  "Pets": "🐾 Pets",
-  "Smoking": "🚬 Smoking",
-  "Parking": "🅿️ Parking",
-  "Bicycle Parking": "🚲 Bicycle Parking",
-  "Lift": "🛗 Lift",
-  "Pool": "🏊 Pool",
-  "Fitness": "🏋️ Fitness",
-  "Security keycard": "🔑 Security keycard",
-  "Security finger print": "👆 Security finger print",
-  "CCTV": "📹 CCTV",
-  "Security": "🛡️ Security",
-  "Restaurant/Food Shop": "🍽️ Restaurant/Food Shop",
-  "Convenient Store": "🏪 Store",
-  "Laundry": "🧺 Laundry",
-  "Beauty Salon in Building": "💇 Beauty Salon in Building",
-  "EV Charger": "🔌 EV Charger",
-};
-
-let allData = [];
-let districtCoords = {};
-let addressCoords = {};
 
 // ── Init ────────────────────────────────────────────────────────────
 
@@ -1749,40 +1084,8 @@ async function init() {
   await Promise.all([loadStats(), loadListings(), loadDistrictCoords(), loadAddressCoords()]);
 }
 
-// Points GPS de repli par quartier (subdistrict/district/province),
-// pré-calculés hors-ligne via Nominatim — voir scripts/geocode_districts.py.
-// Sert de dernier recours quand ni l'annonce ni son adresse complète n'ont
-// de coordonnées, pour que le lien/carte Google Maps pointe toujours sur
-// un vrai marqueur plutôt qu'une recherche texte approximative.
-async function loadDistrictCoords() {
-  const candidates = ["district_coords.json", `${API}/static/district_coords.json`];
-  for (const url of candidates) {
-    try {
-      const r = await fetch(url);
-      if (r.ok) { districtCoords = await r.json(); return; }
-    } catch (e) {}
-  }
-}
-
-// Points GPS par adresse complète (rue/route + quartier, quand RentHub la
-// publie) — voir scripts/geocode_addresses.py. Plus précis que le centre
-// de quartier: tombe près du bâtiment réel pour les annonces qui ont un
-// nom de rue, sinon équivalent au fallback quartier.
-async function loadAddressCoords() {
-  const candidates = ["address_coords.json", `${API}/static/address_coords.json`];
-  for (const url of candidates) {
-    try {
-      const r = await fetch(url);
-      if (r.ok) { addressCoords = await r.json(); return; }
-    } catch (e) {}
-  }
-}
-
-
-
 // Pré-remplit les filtres depuis l'URL (ex: redirection depuis le
 // formulaire de payant.html vers les annonces correspondantes).
-
 
 // Regroupe les provinces à faible volume (<5 annonces) dans la province
 // voisine la plus proche de la même région, pour alléger le menu Ville.
@@ -1791,41 +1094,22 @@ async function loadAddressCoords() {
 // parlant (ex: le district administratif "Bang Lamung" correspond à la
 // zone touristique connue sous le nom de Pattaya).
 
-
-
 // Regroupe les villes/provinces canoniques (retournées par cityOf) en 5
 // grandes régions de Thaïlande, pour le filtre régional (bouton flottant).
 
-
-
-
-
-
-
 // Grandes villes mises en avant : correspond sur la province (ex: Bangkok,
 // Phuket) ou le district (ex: Pattaya, qui est un district de Chonburi).
-
-
-
-
-
-
-
-
 
 // Slider (échelle exponentielle : plus de précision sur les loyers bas)
 
 // Exposant choisi pour que le milieu du curseur (50%) corresponde à 10 000 ฿
 
-
 // En dessous de 100 ฿, aucun contrat réel n'existe à ce prix : on masque
 // le filtre "Contrat" plutôt que de laisser des cases à cocher inutiles.
-
 
 // Debounce texte
 
 // ── Rendu ────────────────────────────────────────────────────────────
-
 
 // ── Nom de ville affiche sur les cartes ───────────────────────────────
 // Les cartes de la vitrine ne portent que la ville. Le champ `city` est
@@ -1839,13 +1123,6 @@ async function loadAddressCoords() {
 // On n'importe volontairement PAS le PROVINCE_MERGE_MAP de index.html :
 // il regroupe des provinces pour le filtre (Songkhla y pointe sur Surat
 // Thani), ce qui afficherait une ville fausse sur une carte.
-
-const DISTRICT_AS_CITY = {
-  "Bang Lamung": "Pattaya",
-  "Ko Samui": "Ko Samui",
-  "Hua Hin": "Hua Hin",
-  "Ko Phangan": "Ko Phangan",
-};
 
 function cityLabel(l) {
   const district = String(l.district || "").toLowerCase();
@@ -1864,67 +1141,67 @@ function cityLabel(l) {
 // donnee. cityLabel() peut renvoyer une ville de district (Pattaya, Ko
 // Samui...) en plus des provinces : ces cles sont dans la meme table.
 const PROVINCE_IMAGES = {
-  "Bangkok": "/static/img/provinces/bangkok.jpg",
-  "Pathumthani": "/static/img/provinces/pathumthani.jpg",
-  "Samut Prakarn": "/static/img/provinces/samut-prakarn.jpg",
-  "Chonburi": "/static/img/provinces/chonburi.jpg",
-  "Nonthaburi": "/static/img/provinces/nonthaburi.jpg",
-  "Phuket": "/static/img/provinces/phuket.jpg",
-  "Chiang Mai": "/static/img/provinces/chiang-mai.jpg",
-  "Rayong": "/static/img/provinces/rayong.jpg",
-  "Nakhon Pathom": "/static/img/provinces/nakhon-pathom.jpg",
-  "Nakhon Ratchasima": "/static/img/provinces/nakhon-ratchasima.jpg",
-  "Samut Sakhon": "/static/img/provinces/samut-sakhon.jpg",
-  "Khon Kaen": "/static/img/provinces/khon-kaen.jpg",
-  "Phra Nakhon Sri Ayutthaya": "/static/img/provinces/phra-nakhon-sri-ayutthaya.jpg",
-  "Songkhla": "/static/img/provinces/songkhla.jpg",
-  "Surat Thani": "/static/img/provinces/surat-thani.jpg",
-  "Chachoengsao": "/static/img/provinces/chachoengsao.jpg",
-  "Chiang Rai": "/static/img/provinces/chiang-rai.jpg",
-  "Prachaubkirikhan": "/static/img/provinces/prachaubkirikhan.jpg",
-  "Ratchburi": "/static/img/provinces/ratchburi.jpg",
-  "Phitsanulok": "/static/img/provinces/phitsanulok.jpg",
-  "Udon Thani": "/static/img/provinces/udon-thani.jpg",
-  "Ubon Ratchathani": "/static/img/provinces/ubon-ratchathani.jpg",
-  "Krabi": "/static/img/provinces/krabi.jpg",
-  "Lamphang": "/static/img/provinces/lamphang.jpg",
-  "Petchburi": "/static/img/provinces/petchburi.jpg",
-  "Maha Sarakham": "/static/img/provinces/maha-sarakham.jpg",
-  "Nakhon Nayok": "/static/img/provinces/nakhon-nayok.jpg",
-  "Nakhon Sri Thammarat": "/static/img/provinces/nakhon-sri-thammarat.jpg",
-  "Prachinburi": "/static/img/provinces/prachinburi.jpg",
-  "Saraburi": "/static/img/provinces/saraburi.jpg",
-  "Suphanburi": "/static/img/provinces/suphanburi.jpg",
-  "Surin": "/static/img/provinces/surin.jpg",
-  "Chaiyaphum": "/static/img/provinces/chaiyaphum.jpg",
-  "Lopburi": "/static/img/provinces/lopburi.jpg",
-  "Nong Bua Lam Phu": "/static/img/provinces/nong-bua-lam-phu.jpg",
-  "Si Sa Ket": "/static/img/provinces/si-sa-ket.jpg",
-  "Buri Ram": "/static/img/provinces/buri-ram.jpg",
-  "Ranong": "/static/img/provinces/ranong.jpg",
-  "Sakon Nakhon": "/static/img/provinces/sakon-nakhon.jpg",
-  "Samut Songkram": "/static/img/provinces/samut-songkram.jpg",
-  "Singburi": "/static/img/provinces/singburi.png",
-  "Amnat Charoen": "/static/img/provinces/amnat-charoen.jpg",
-  "Chainat": "/static/img/provinces/chainat.jpg",
-  "Chanthaburi": "/static/img/provinces/chanthaburi.jpg",
-  "Kanchanaburi": "/static/img/provinces/kanchanaburi.jpg",
-  "Lamphun": "/static/img/provinces/lamphun.jpg",
-  "Mukdahan": "/static/img/provinces/mukdahan.jpg",
-  "Pattani": "/static/img/provinces/pattani.jpg",
-  "Phrae": "/static/img/provinces/phrae.jpg",
-  "Roi Et": "/static/img/provinces/roi-et.jpg",
-  "Tak": "/static/img/provinces/tak.jpg",
-  "Trang": "/static/img/provinces/trang.jpg",
-  "Uthai Thani": "/static/img/provinces/uthai-thani.jpg",
-  "Yala": "/static/img/provinces/yala.jpg",
-  "Yasothon": "/static/img/provinces/yasothon.jpg",
-  "Pattaya": "/static/img/provinces/pattaya.jpg",
-  "Ko Samui": "/static/img/provinces/ko-samui.jpg",
-  "Hua Hin": "/static/img/provinces/hua-hin.jpg",
-  "Ko Phangan": "/static/img/provinces/ko-phangan.jpg",
+  "Bangkok": "/static/img/provinces/bangkok.webp",
+  "Pathumthani": "/static/img/provinces/pathumthani.webp",
+  "Samut Prakarn": "/static/img/provinces/samut-prakarn.webp",
+  "Chonburi": "/static/img/provinces/chonburi.webp",
+  "Nonthaburi": "/static/img/provinces/nonthaburi.webp",
+  "Phuket": "/static/img/provinces/phuket.webp",
+  "Chiang Mai": "/static/img/provinces/chiang-mai.webp",
+  "Rayong": "/static/img/provinces/rayong.webp",
+  "Nakhon Pathom": "/static/img/provinces/nakhon-pathom.webp",
+  "Nakhon Ratchasima": "/static/img/provinces/nakhon-ratchasima.webp",
+  "Samut Sakhon": "/static/img/provinces/samut-sakhon.webp",
+  "Khon Kaen": "/static/img/provinces/khon-kaen.webp",
+  "Phra Nakhon Sri Ayutthaya": "/static/img/provinces/phra-nakhon-sri-ayutthaya.webp",
+  "Songkhla": "/static/img/provinces/songkhla.webp",
+  "Surat Thani": "/static/img/provinces/surat-thani.webp",
+  "Chachoengsao": "/static/img/provinces/chachoengsao.webp",
+  "Chiang Rai": "/static/img/provinces/chiang-rai.webp",
+  "Prachaubkirikhan": "/static/img/provinces/prachaubkirikhan.webp",
+  "Ratchburi": "/static/img/provinces/ratchburi.webp",
+  "Phitsanulok": "/static/img/provinces/phitsanulok.webp",
+  "Udon Thani": "/static/img/provinces/udon-thani.webp",
+  "Ubon Ratchathani": "/static/img/provinces/ubon-ratchathani.webp",
+  "Krabi": "/static/img/provinces/krabi.webp",
+  "Lamphang": "/static/img/provinces/lamphang.webp",
+  "Petchburi": "/static/img/provinces/petchburi.webp",
+  "Maha Sarakham": "/static/img/provinces/maha-sarakham.webp",
+  "Nakhon Nayok": "/static/img/provinces/nakhon-nayok.webp",
+  "Nakhon Sri Thammarat": "/static/img/provinces/nakhon-sri-thammarat.webp",
+  "Prachinburi": "/static/img/provinces/prachinburi.webp",
+  "Saraburi": "/static/img/provinces/saraburi.webp",
+  "Suphanburi": "/static/img/provinces/suphanburi.webp",
+  "Surin": "/static/img/provinces/surin.webp",
+  "Chaiyaphum": "/static/img/provinces/chaiyaphum.webp",
+  "Lopburi": "/static/img/provinces/lopburi.webp",
+  "Nong Bua Lam Phu": "/static/img/provinces/nong-bua-lam-phu.webp",
+  "Si Sa Ket": "/static/img/provinces/si-sa-ket.webp",
+  "Buri Ram": "/static/img/provinces/buri-ram.webp",
+  "Ranong": "/static/img/provinces/ranong.webp",
+  "Sakon Nakhon": "/static/img/provinces/sakon-nakhon.webp",
+  "Samut Songkram": "/static/img/provinces/samut-songkram.webp",
+  "Singburi": "/static/img/provinces/singburi.webp",
+  "Amnat Charoen": "/static/img/provinces/amnat-charoen.webp",
+  "Chainat": "/static/img/provinces/chainat.webp",
+  "Chanthaburi": "/static/img/provinces/chanthaburi.webp",
+  "Kanchanaburi": "/static/img/provinces/kanchanaburi.webp",
+  "Lamphun": "/static/img/provinces/lamphun.webp",
+  "Mukdahan": "/static/img/provinces/mukdahan.webp",
+  "Pattani": "/static/img/provinces/pattani.webp",
+  "Phrae": "/static/img/provinces/phrae.webp",
+  "Roi Et": "/static/img/provinces/roi-et.webp",
+  "Tak": "/static/img/provinces/tak.webp",
+  "Trang": "/static/img/provinces/trang.webp",
+  "Uthai Thani": "/static/img/provinces/uthai-thani.webp",
+  "Yala": "/static/img/provinces/yala.webp",
+  "Yasothon": "/static/img/provinces/yasothon.webp",
+  "Pattaya": "/static/img/provinces/pattaya.webp",
+  "Ko Samui": "/static/img/provinces/ko-samui.webp",
+  "Hua Hin": "/static/img/provinces/hua-hin.webp",
+  "Ko Phangan": "/static/img/provinces/ko-phangan.webp",
 };
-const PROVINCE_IMAGE_FALLBACK = "/static/img/provinces/bangkok.jpg";
+const PROVINCE_IMAGE_FALLBACK = "/static/img/provinces/bangkok.webp";
 
 // Regroupement pour le bandeau du haut et "comment ca marche" seulement :
 // Samut Prakarn fait partie du Grand Bangkok et n'est pas une ville que
@@ -2472,54 +1749,9 @@ function dealHTML(l) {
   </a>`;
 }
 
-
-
-// Retourne le nombre brut (pour le calcul), ou null si absent/invalide.
-// Certains prix sont une fourchette ("85 - 5,200 THB/month") où le bas est
-// une aberration de scraping : en dessous de MIN_VALID_PRICE, on garde le
-// haut de la fourchette ; si lui aussi est invalide, on abandonne le contrat.
-const MIN_VALID_PRICE = 1000;
-function contractNum(raw) {
-  if (!raw || raw.trim() === "-" || raw.trim() === "") return null;
-  const nums = (raw.match(/[\d,]+/g) || [])
-    .map(s => parseInt(s.replace(/,/g, ""), 10))
-    .filter(n => Number.isFinite(n) && n > 0);
-  if (!nums.length) return null;
-
-  const low = nums[0];
-  const high = nums[nums.length - 1];
-  if (low >= MIN_VALID_PRICE) return low;
-  if (high >= MIN_VALID_PRICE) return high;
-  return null;
-}
-
-function contractVal(raw) {
-  const n = contractNum(raw);
-  if (n === null) return "—";
-
-  const eur = n / 38.28;
-
-  const thb = n.toLocaleString("fr-FR");
-  const euros = eur.toLocaleString("fr-FR", {
-    maximumFractionDigits: 0
-  });
-
-  return `${thb} ฿<br>${euros} €`;
-}
-
-function esc(s) {
-  return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
-}
-
 // ── Pagination ────────────────────────────────────────────────────────
 
-
-
 // ── Modal ────────────────────────────────────────────────────────────
-
-let lastFocusedEl = null;
-let currentGalleryImages = [];
-let currentLightboxIndex = 0;
 
 async function openModal(id) {
   lastFocusedEl = document.activeElement;
@@ -2536,26 +1768,6 @@ async function openModal(id) {
   }
 }
 
-function openLightbox(i) {
-  currentLightboxIndex = i;
-  document.getElementById("lightbox-img").src = currentGalleryImages[i] || "";
-  document.getElementById("lightbox-overlay").classList.add("open");
-  const showNav = currentGalleryImages.length > 1;
-  document.getElementById("lightbox-prev").disabled = !showNav;
-  document.getElementById("lightbox-next").disabled = !showNav;
-}
-function closeLightbox(e) {
-  if (e && e.target !== document.getElementById("lightbox-overlay")) return;
-  document.getElementById("lightbox-overlay").classList.remove("open");
-  document.getElementById("lightbox-img").src = "";
-}
-function navigateLightbox(delta) {
-  if (!currentGalleryImages.length) return;
-  currentLightboxIndex = (currentLightboxIndex + delta + currentGalleryImages.length) % currentGalleryImages.length;
-  document.getElementById("lightbox-img").src = currentGalleryImages[currentLightboxIndex];
-}
-
-let lightboxTouchStartX = null;
 document.getElementById("lightbox-overlay").addEventListener("touchstart", e => {
   lightboxTouchStartX = e.changedTouches[0].clientX;
 }, { passive: true });
@@ -2567,46 +1779,7 @@ document.getElementById("lightbox-overlay").addEventListener("touchend", e => {
   navigateLightbox(delta > 0 ? -1 : 1);
 }, { passive: true });
 
-function trapModalFocus(e) {
-  if (e.key !== "Tab") return;
-  const overlay = document.getElementById("overlay");
-  if (!overlay.classList.contains("open")) return;
-  const focusable = document.getElementById("modal-body")
-    .querySelectorAll('a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])');
-  if (!focusable.length) return;
-  const first = focusable[0];
-  const last = focusable[focusable.length - 1];
-  if (e.shiftKey && document.activeElement === first) {
-    e.preventDefault(); last.focus();
-  } else if (!e.shiftKey && document.activeElement === last) {
-    e.preventDefault(); first.focus();
-  }
-}
 document.addEventListener("keydown", trapModalFocus);
-
-// Normalisation partagée par les deux caches de coordonnées ci-dessous.
-// Cette page l'appelait sans jamais la définir (elle n'existait que dans
-// index.html et premium.html): toute ouverture de modale levait un
-// ReferenceError dans districtPoint(), donc aucune carte ne s'affichait
-// sur la vitrine publique.
-function norm(v) {
-  return String(v ?? "").trim();
-}
-
-// Point GPS de l'adresse complète (rue/route + quartier) de l'annonce,
-// si présent dans le cache chargé par loadAddressCoords(). Plus précis que
-// districtPoint() quand RentHub publie un nom de rue.
-function addressPoint(l) {
-  if (!l.address) return null;
-  return addressCoords[norm(l.address).toLowerCase()] || null;
-}
-
-// Point GPS pré-calculé du quartier (subdistrict/district/province) de
-// l'annonce, si présent dans le cache chargé par loadDistrictCoords().
-function districtPoint(l) {
-  const k = [l.subdistrict, l.district, l.province].map(v => norm(v).toLowerCase()).join("|");
-  return districtCoords[k] || null;
-}
 
 // Le point GPS le plus précis disponible pour l'annonce, du plus précis
 // au moins précis: ses propres coordonnées scrapées, son adresse complète
@@ -2622,95 +1795,6 @@ function mapPoint(l) {
   const dp = districtPoint(l);
   if (dp) return { ...dp, precise: false };
   return null;
-}
-
-function mapQuery(l) {
-  const pt = mapPoint(l);
-  if (pt) return `${pt.lat},${pt.lon}`;
-  const q = l.address || [l.subdistrict, l.district, l.province].filter(Boolean).join(", ");
-  return q ? `${q}, Thailand` : null;
-}
-
-function googleMapsUrl(l) {
-  const q = mapQuery(l);
-  if (!q) return null;
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
-}
-
-// Embed public sans clé API (endpoint historique `output=embed`) — pas
-// aussi précis/officiel que l'API Maps Embed payante, mais suffisant
-// pour situer un point sur une carte interactive intégrée à la modal.
-function googleMapsEmbedUrl(l) {
-  const q = mapQuery(l);
-  if (!q) return null;
-  const pt = mapPoint(l);
-  const zoom = pt && pt.precise ? 17 : (pt ? 15 : 13);
-  return `https://maps.google.com/maps?q=${encodeURIComponent(q)}&z=${zoom}&output=embed`;
-}
-
-const humanizeRoomType = s => s ? s.toLowerCase().replace(/_/g, " ").replace(/^./, c => c.toUpperCase()) : null;
-
-function roomTypeLabel(rt) {
-  const roomType = humanizeRoomType(rt.room_type);
-  return [
-    rt.name && rt.name !== "Unknown" ? rt.name : null,
-    roomType && roomType !== rt.name ? roomType : null,
-    rt.size_sqm ? `${rt.size_sqm} m²` : null,
-  ].filter(Boolean).join(" · ");
-}
-
-function contractRooms(l) {
-  const rooms = (l.room_types || []).filter(rt =>
-    rt.monthly_min_thb != null || rt.monthly_max_thb != null ||
-    rt.contract_1_month_thb != null || rt.contract_3_month_thb != null || rt.contract_6_month_thb != null);
-  const available = rooms.filter(rt => !rt.status || rt.status.trim().toLowerCase() === "available");
-  return available.length ? available : rooms;
-}
-
-function contractsSectionTitle(l) {
-  const useRooms = contractRooms(l);
-  if (useRooms.length === 1) {
-    const label = roomTypeLabel(useRooms[0]);
-    if (label) return label;
-  }
-  return "Room Type";
-}
-
-function renderContractsHTML(l) {
-  const fmt = n => n == null ? null : `${n.toLocaleString("en-US")} THB/month`;
-  const useRooms = contractRooms(l);
-
-  if (useRooms.length) {
-    return useRooms.map(rt => {
-      const label = roomTypeLabel(rt);
-      const terms = [
-        ["1 mois", fmt(rt.contract_1_month_thb)],
-        ["3 mois", fmt(rt.contract_3_month_thb)],
-        ["6 mois", fmt(rt.contract_6_month_thb)],
-      ].filter(([, v]) => v != null);
-      if (!terms.length) return "";
-      const termsHTML = terms.map(([term, v]) => `
-        <div class="mc">
-          <div class="mc-label">${term}</div>
-          <div class="mc-val">${esc(v)}</div>
-        </div>`).join("");
-      if (useRooms.length <= 1) return termsHTML;
-      return `
-        <div class="mc-room-group">
-          ${label ? `<div class="mc-room-label">${esc(label)}</div>` : ""}
-          <div class="mc-room-terms">${termsHTML}</div>
-        </div>`;
-    }).join("");
-  }
-
-  const contracts = [["1 mois", l.contract_monthly_raw], ["3 mois", l.contract_3_month_raw], ["6 mois", l.contract_6_month_raw]]
-    .filter(([, raw]) => raw && raw !== "-");
-  if (!contracts.length) return `<div class="mc"><div class="mc-val na">Aucun contrat disponible</div></div>`;
-  return contracts.map(([label, raw]) => `
-        <div class="mc">
-          <div class="mc-label">${label}</div>
-          <div class="mc-val">${esc(raw)}</div>
-        </div>`).join("");
 }
 
 function modalHTML(l) {
@@ -2786,11 +1870,6 @@ function modalHTML(l) {
   `;
 }
 
-function closeModal(e) {
-  if (e && e.target !== document.getElementById("overlay")) return;
-  document.getElementById("overlay").classList.remove("open");
-  if (lastFocusedEl) { lastFocusedEl.focus(); lastFocusedEl = null; }
-}
 document.addEventListener("keydown", e => {
   const lightboxOpen = document.getElementById("lightbox-overlay").classList.contains("open");
   if (lightboxOpen && e.key === "ArrowLeft") { navigateLightbox(-1); return; }
@@ -2799,7 +1878,6 @@ document.addEventListener("keydown", e => {
   if (lightboxOpen) { closeLightbox(); return; }
   closeModal();
 });
-
 
 init();
 </script>
