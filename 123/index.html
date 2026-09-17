@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ThaiMonth Tracker</title>
+<meta property="og:title" content="ThaiMonth Tracker">
+<meta property="og:description" content="Suivi des annonces de location en Thaïlande">
+<meta property="og:image" content="/static/logo.png">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/static/css/catalog.css">
+<link rel="stylesheet" href="/static/css/modal.css">
+<link rel="stylesheet" href="/static/css/common.css">
+<style>
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #faf8f4;
+    --surface:  #ffffff;
+    --card:     #ffffff;
+    --border:   #e9e4da;
+    --accent:   #5046f5;
+    --accent-ink: #ffffff;
+    --brand-lime: #c7ef6c;
+    --brand-gold: #e8b765;
+    --blue:     #5046f5;
+    --green:    #2f9e44;
+    --red:      #e03131;
+    --purple:   #7950f2;
+    --text:     #14130f;
+    --muted:    #6c6660;
+    --dim:      #9b948b;
+    --focus:    #5046f5;
+    --mono:     'Plus Jakarta Sans', system-ui, sans-serif;
+    --sans:     'Plus Jakarta Sans', system-ui, sans-serif;
+    --r-pill:   9999px;
+    --r-card:   20px;
+    --r-ctl:    12px;
+    --sky-1:    #cfe8b8;
+    --sky-2:    #dcd6f9;
+    --sky-3:    #cde8f4;
+  }
+
+  body {
+    background: var(--sky-2);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    min-height: 100vh;
+  }
+  .btn-new24h.active { background: var(--purple); border-color: var(--purple); color: #fff; font-weight: 700; }
+
+  .filter-section { display: flex; flex-direction: column; gap: 9px; }
+
+  .filter-label {
+    font-size: 11px;
+    font-family: var(--mono);
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+  .modal-gallery-item {
+    position: relative;
+    flex-shrink: 0;
+    height: 220px;
+    max-width: 85%;
+    scroll-snap-align: start;
+  }
+  .modal-gallery-item img {
+    height: 220px;
+    width: auto;
+    max-width: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    background: var(--border);
+    transform: scaleX(-1);
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    cursor: zoom-in;
+  }
+  .badge {
+    position: absolute;
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: var(--r-pill);
+    letter-spacing: .05em;
+  }
+  .cc {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--r-ctl);
+    padding: 6px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    text-align: center;
+    min-width: 0;
+  }
+  .cc-val.na { color: var(--muted); font-weight: 400; font-size: 11px; }
+  .pager button.on { border-color: var(--accent); color: var(--accent); }
+
+  /* ── Modal ── */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(20,19,15,.45);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .lightbox-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.92);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    cursor: zoom-out;
+  }
+  .lightbox-overlay.open { display: flex; }
+  .lightbox-content img#lightbox-img {
+    display: block;
+    max-width: 95vw;
+    max-height: 95vh;
+    width: auto; height: auto;
+    object-fit: contain;
+    border-radius: 8px;
+    background: var(--border);
+    transform: scaleX(-1);
+    -webkit-user-drag: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    cursor: default;
+  }
+  .lightbox-prev { left: 20px; }
+  .lightbox-next { right: 20px; }
+  .modal-close {
+    background: none; border: 1px solid var(--border);
+    border-radius: var(--r-pill); color: var(--muted);
+    width: 28px; height: 28px; cursor: pointer;
+    font-size: 14px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: color .15s;
+  }
+  .mc-val {
+    font-size: 13px; font-weight: 700;
+    font-family: var(--mono); color: var(--accent);
+  }
+  .region-fab.active { background: var(--blue); color: #fff; }
+  .region-menu.open { display: flex; }
+  .region-item.active { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+
+</style>
+<script src="/static/auth-header.js" defer></script>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="/123" aria-label="ThaiMonth">
+    <span class="logo-thai">Thai</span><span class="logo-month">Month</span>
+  </a>
+  <a class="header-map" href="/vip.html">Voir la carte</a>
+</header>
+
+<!-- FILTRES VILLE + QUARTIER -->
+<div class="city-bar">
+  <div class="hstat city-total"><span>Logement</span><b id="h-total">—</b></div>
+  <div class="location-filter" id="featured-cities">
+    <label class="city-label" for="featured-city-select">⭐ Grandes villes :</label>
+    <select class="city-select" id="featured-city-select" onchange="toggleFeaturedCity(this.value)">
+      <option value="">Toutes les grandes villes</option>
+      <option value="Bangkok">Bangkok</option>
+      <option value="Pattaya">Pattaya</option>
+      <option value="Chiang Mai">Chiang Mai</option>
+      <option value="Phuket">Phuket</option>
+      <option value="Hua Hin">Hua Hin</option>
+      <option value="Ko Samui">Ko Samui</option>
+      <option value="Ko Phangan">Ko Phangan</option>
+      <option value="Udon Thani">Udon Thani</option>
+      <option value="Krabi">Krabi</option>
+    </select>
+  </div>
+  <div class="location-filter">
+    <label class="city-label" for="city-select">🏙️ Ville :</label>
+    <select class="city-select" id="city-select" onchange="selectCity(this.value)">
+      <option value="">Toutes les villes</option>
+    </select>
+  </div>
+  <div class="location-filter">
+    <label class="city-label" for="district-select">📍 Quartier :</label>
+    <select class="city-select" id="district-select" onchange="selectDistrict(this.value)" disabled>
+      <option value="">Sélectionnez d'abord une ville</option>
+    </select>
+  </div>
+  <div class="city-stats" aria-label="Statistiques des logements">
+    <div class="hstat"><span>1 mois dispo</span><b id="h-monthly">—</b></div>
+    <div class="hstat"><span>3 mois dispo</span><b id="h-3month">—</b></div>
+    <div class="hstat"><span>6 mois dispo</span><b id="h-6month">—</b></div>
+  </div>
+</div>
+
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <div class="filter-section">
+      <button class="btn-new24h" id="btn-new24h" onclick="toggleNew24h()">
+        🆕 New <span class="new24h-count" id="new24h-count"></span>
+      </button>
+    </div>
+
+    <div class="filter-section">
+      <label class="filter-label" for="f-slider">Prix mensuel max (EUR)</label>
+      <div class="slider-wrap">
+        <input type="range" id="f-slider" min="0" max="1000" step="1" value="1000">
+        <div class="slider-info">
+          <span>0</span>
+          <span id="slider-val">Tous les prix</span>
+        </div>
+      </div>
+      <div class="price-grid" style="margin-top:8px">
+        <label class="visually-hidden" for="f-min">Prix minimum en euros</label>
+        <input class="filter-input" type="number" id="f-min" placeholder="Min €" step="10">
+        <label class="visually-hidden" for="f-max">Prix maximum en euros</label>
+        <input class="filter-input" type="number" id="f-max" placeholder="Max €" step="10">
+      </div>
+    </div>
+
+    <div class="filter-section" id="contract-filter-section">
+      <div class="filter-label">Contrat</div>
+      <div class="chip-group">
+        <label class="chip chip-monthly">
+          <input type="checkbox" id="f-monthly" onchange="applyFilters()" aria-label="Afficher uniquement les annonces avec contrat 1 mois">
+          <span class="chip-label">1 mois</span>
+        </label>
+        <label class="chip chip-3month">
+          <input type="checkbox" id="f-3month" onchange="applyFilters()" aria-label="Afficher uniquement les annonces avec contrat 3 mois">
+          <span class="chip-label">3 mois</span>
+        </label>
+        <label class="chip chip-6month">
+          <input type="checkbox" id="f-6month" onchange="applyFilters()" aria-label="Afficher uniquement les annonces avec contrat 6 mois">
+          <span class="chip-label">6 mois</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-label">Équipements</div>
+      <div class="chip-group chip-equip">
+        <label class="chip">
+          <input type="checkbox" id="f-am-desk" onchange="applyFilters()" aria-label="Afficher uniquement les annonces avec Desk">
+          <span class="chip-label">🖥️ Desk</span>
+        </label>
+        <label class="chip">
+          <input type="checkbox" id="f-am-wifi" onchange="applyFilters()" aria-label="Afficher uniquement les annonces avec WIFI">
+          <span class="chip-label">📶 WIFI</span>
+        </label>
+        <label class="chip">
+          <input type="checkbox" id="f-am-smoking" onchange="applyFilters()" aria-label="Afficher uniquement les annonces avec Smoking">
+          <span class="chip-label">🚬 Smoking</span>
+        </label>
+        <label class="chip">
+          <input type="checkbox" id="f-am-pool" onchange="applyFilters()" aria-label="Afficher uniquement les annonces avec Pool">
+          <span class="chip-label">🏊 Pool</span>
+        </label>
+        <label class="chip">
+          <input type="checkbox" id="f-am-fitness" onchange="applyFilters()" aria-label="Afficher uniquement les annonces avec Fitness">
+          <span class="chip-label">🏋️ Fitness</span>
+        </label>
+        <label class="chip">
+          <input type="checkbox" id="f-am-store" onchange="applyFilters()" aria-label="Afficher uniquement les annonces avec Convenient Store">
+          <span class="chip-label">🏪 Store</span>
+        </label>
+      </div>
+    </div>
+
+    <button class="btn-reset" onclick="resetFilters()">↺ Réinitialiser les filtres</button>
+
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="toolbar">
+      <div class="result-info" role="status" aria-live="polite"><b id="res-count">—</b> annonces</div>
+      <label class="visually-hidden" for="f-sort">Trier les annonces</label>
+      <select class="sort-select" id="f-sort" onchange="applyFilters()">
+        <option value="updated">Récentes d'abord</option>
+        <option value="price_asc">Prix ↑</option>
+        <option value="price_desc">Prix ↓</option>
+        <option value="name">Nom A→Z</option>
+      </select>
+    </div>
+
+    <div id="grid-wrap">
+      <div class="state-box"><div class="spinner"></div>Chargement…</div>
+    </div>
+
+    <div class="pager" id="pager"></div>
+  </main>
+</div>
+
+<!-- FILTRE RÉGION -->
+<div class="region-fab-wrap" id="region-fab-wrap">
+  <div class="region-menu" id="region-menu" role="menu">
+    <button class="region-item" data-region="Centre" onclick="selectRegion('Centre')" role="menuitem">Centre</button>
+    <button class="region-item" data-region="Nord" onclick="selectRegion('Nord')" role="menuitem">Nord</button>
+    <button class="region-item" data-region="Nord-Est" onclick="selectRegion('Nord-Est')" role="menuitem">Nord-Est (Isaan)</button>
+    <button class="region-item" data-region="Est" onclick="selectRegion('Est')" role="menuitem">Est</button>
+    <button class="region-item" data-region="Sud" onclick="selectRegion('Sud')" role="menuitem">Sud</button>
+  </div>
+  <button class="region-fab" id="region-fab" onclick="toggleRegionMenu()" aria-haspopup="true" aria-expanded="false" aria-label="Filtrer par région">🗺️</button>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal-body" role="dialog" aria-modal="true" aria-label="Détail de l'annonce" tabindex="-1"></div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox-overlay" id="lightbox-overlay" onclick="closeLightbox(event)">
+  <button class="lightbox-close" onclick="closeLightbox()" aria-label="Fermer">✕</button>
+  <button class="lightbox-nav lightbox-prev" id="lightbox-prev" onclick="navigateLightbox(-1)" aria-label="Photo précédente">‹</button>
+  <button class="lightbox-nav lightbox-next" id="lightbox-next" onclick="navigateLightbox(1)" aria-label="Photo suivante">›</button>
+  <div class="lightbox-content">
+    <img id="lightbox-img" src="" alt="" draggable="false" oncontextmenu="return false">
+  </div>
+</div>
+
+<script src="/static/js/common.js"></script>
+<script src="/static/js/geo.js"></script>
+<script src="/static/js/modal.js"></script>
+<script src="/static/js/catalog.js"></script>
+<script>window._coreApplyFilters = applyFilters;</script>
+<script>
+const EUR_TO_THB = 38.28;
+
+function applyFilters() {
+  const minEl = document.getElementById("f-min");
+  const maxEl = document.getElementById("f-max");
+  const minEur = minEl.value;
+  const maxEur = maxEl.value;
+  minEl.value = minEur === "" ? "" : Math.round(minEur * EUR_TO_THB);
+  maxEl.value = maxEur === "" ? "" : Math.round(maxEur * EUR_TO_THB);
+  window._coreApplyFilters();
+  minEl.value = minEur;
+  maxEl.value = maxEur;
+}
+</script>
+<script>
+// La barre de villes passe sur deux lignes sous ~1550px : on publie sa
+// hauteur reelle pour que la sidebar sticky se cale juste en dessous.
+(() => {
+  const bar = document.querySelector(".city-bar");
+  if (!bar || !("ResizeObserver" in window)) return;
+  new ResizeObserver(() => {
+    document.documentElement.style.setProperty("--city-bar-h", `${bar.offsetHeight}px`);
+  }).observe(bar);
+})();
+
+// ── Init ────────────────────────────────────────────────────────────
+
+async function init() {
+  await Promise.all([loadStats(), loadListings(), loadDistrictCoords(), loadAddressCoords()]);
+}
+
+Object.entries(REGION_MAP).forEach(([city, region]) => { REGION_BY_KEY[key(city)] = region; });
+
+document.addEventListener("click", (e) => {
+  const wrap = document.getElementById("region-fab-wrap");
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById("region-menu").classList.remove("open");
+    document.getElementById("region-fab").setAttribute("aria-expanded", "false");
+  }
+});
+
+document.getElementById("f-slider").addEventListener("input", function() {
+  const pos = parseInt(this.value);
+  const price = sliderPosToPrice(pos);
+  const priceEur = Math.round(price / EUR_TO_THB);
+  document.getElementById("slider-val").textContent = pos >= SLIDER_RES ? "Tous les prix" : `≤ ${priceEur.toLocaleString("fr-FR")} €`;
+  document.getElementById("f-max").value = pos < SLIDER_RES ? priceEur : "";
+  updateContractSectionVisibility();
+  applyFilters();
+});
+
+["f-min","f-max"].forEach(id => {
+  document.getElementById(id).addEventListener("input", () => {
+    if (id === "f-max") updateContractSectionVisibility();
+    clearTimeout(_t); _t = setTimeout(applyFilters, 280);
+  });
+});
+
+// ── Rendu ────────────────────────────────────────────────────────────
+
+function cardHTML(l) {
+  const district = l.district || l.subdistrict || "";
+  const c1 = contractVal(l.contract_monthly_raw);
+  const c3 = contractVal(l.contract_3_month_raw);
+  const c6 = contractVal(l.contract_6_month_raw);
+  const updated = l.source_updated_at ? new Date(l.source_updated_at).toLocaleDateString("fr-FR") : "";
+
+  // Quand un toggle "X mois uniquement" est actif, on n'affiche que le
+  // prix de la catégorie sélectionnée (pas les autres durées disponibles).
+  const monthlyOnly = document.getElementById("f-monthly").checked;
+  const threeMonthOnly = document.getElementById("f-3month").checked;
+  const sixMonthOnly = document.getElementById("f-6month").checked;
+  const anyContractOnly = monthlyOnly || threeMonthOnly || sixMonthOnly;
+  const show1 = !anyContractOnly || monthlyOnly;
+  const show3 = !anyContractOnly || threeMonthOnly;
+  const show6 = !anyContractOnly || sixMonthOnly;
+
+  // Catégories dérivées côté serveur depuis la description (fiable, par
+  // annonce) — voir src/normalizers/amenities.py. On ne re-devine rien
+  // côté client.
+  const amenities = l.amenities || [];
+  const categoryIcons = {
+    "Desk": AMENITY_ICONS["Desk"],
+    "In-room WIFI": AMENITY_ICONS["In-room WIFI"],
+    "Smoking": AMENITY_ICONS["Smoking"],
+    "Pool": AMENITY_ICONS["Pool"],
+    "Fitness": AMENITY_ICONS["Fitness"],
+    "Convenient Store": AMENITY_ICONS["Convenient Store"],
+  };
+  const categories = Object.keys(categoryIcons)
+    .filter(k => amenities.includes(k))
+    .map(k => categoryIcons[k]);
+
+  return `<div class="card" tabindex="0" role="button" aria-label="Voir le détail : ${esc(l.name || "annonce")}" onclick="openModal(${l.id})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openModal(${l.id});}">
+    <div class="card-img">${l.images && l.images.length
+      ? `<img src="${esc(l.images[0])}" alt="" loading="lazy" draggable="false" oncontextmenu="return false" onerror="this.parentElement.innerHTML='<div class=&quot;no-img&quot;>🏠</div>'">`
+      : `<div class="no-img">🏠</div>`}</div>
+    <div class="card-badge-slot">${show1 && l.has_monthly_contract === "true" && c1 !== "—" ? `<span class="badge badge-monthly" style="position:static;display:inline-block">1 MOIS</span>` : ""}${show3 && c3 !== "—" ? `<span class="badge badge-term-3" style="position:static;display:inline-block">3 MOIS</span>` : ""}${show6 && c6 !== "—" ? `<span class="badge badge-term-6" style="position:static;display:inline-block">6 MOIS</span>` : ""}</div>
+
+    <div class="card-body">
+
+      <div class="card-loc">
+        ${district ? `<span class="loc-district">${esc(district)}</span>` : ""}
+        ${l.province ? `<span class="loc-province">${esc(l.province)}</span>` : ""}
+      </div>
+
+      ${categories.length ? `
+        <div class="card-categories">
+          ${categories.map(c => `<span class="amenity-badge">${esc(c)}</span>`).join("")}
+        </div>
+      ` : ""}
+
+      ${(() => {
+        const boxes = [
+          show1 && c1 !== "—" ? `<div class="cc"><div class="cc-label">1 mois</div><div class="cc-val">${c1}</div></div>` : "",
+          show3 && c3 !== "—" ? `<div class="cc"><div class="cc-label">3 mois</div><div class="cc-val">${c3}</div></div>` : "",
+          show6 && c6 !== "—" ? `<div class="cc"><div class="cc-label">6 mois</div><div class="cc-val">${c6}</div></div>` : "",
+        ].filter(Boolean);
+        return boxes.length
+          ? `<div class="card-contracts">${boxes.join("")}</div>`
+          : "";
+      })()}
+
+      ${updated ? `<div class="card-date">Mis à jour: ${updated}</div>` : ""}
+
+    </div>
+  </div>`;
+}
+
+// ── Pagination ────────────────────────────────────────────────────────
+
+// ── Modal ────────────────────────────────────────────────────────────
+
+async function openModal(id) {
+  lastFocusedEl = document.activeElement;
+  document.getElementById("overlay").classList.add("open");
+  const body = document.getElementById("modal-body");
+  body.innerHTML = `<div class="state-box"><div class="spinner"></div></div>`;
+  body.focus();
+  try {
+    const l = await fetch(`${API}/listings/${id}`).then(r => r.json());
+    body.innerHTML = modalHTML(l);
+    currentGalleryImages = l.images || [];
+  } catch(e) {
+    body.innerHTML = `<div class="state-box">Erreur de chargement</div>`;
+  }
+}
+
+document.getElementById("lightbox-overlay").addEventListener("touchstart", e => {
+  lightboxTouchStartX = e.changedTouches[0].clientX;
+}, { passive: true });
+document.getElementById("lightbox-overlay").addEventListener("touchend", e => {
+  if (lightboxTouchStartX === null) return;
+  const delta = e.changedTouches[0].clientX - lightboxTouchStartX;
+  lightboxTouchStartX = null;
+  if (Math.abs(delta) < 40) return;
+  navigateLightbox(delta > 0 ? -1 : 1);
+}, { passive: true });
+
+document.addEventListener("keydown", trapModalFocus);
+
+// Le point GPS le plus précis disponible pour l'annonce, du plus précis
+// au moins précis: ses propres coordonnées scrapées, son adresse complète
+// géocodée, puis le centre de son quartier. `precise: true` signifie
+// "assez précis pour zoomer près du bâtiment" (coordonnées propres ou
+// adresse avec rue/route), par opposition à un simple centre de quartier.
+function mapPoint(l) {
+  if (l.latitude != null && l.longitude != null) {
+    return { lat: l.latitude, lon: l.longitude, precise: true };
+  }
+  const ap = addressPoint(l);
+  if (ap) return { ...ap, precise: /\d/.test(l.address || "") };
+  const dp = districtPoint(l);
+  if (dp) return { ...dp, precise: false };
+  return null;
+}
+
+function modalHTML(l) {
+  const locs = [l.subdistrict, l.district, l.province].filter(Boolean);
+  const amenities = l.amenities || [];
+  const mapsUrl = googleMapsUrl(l);
+  const embedUrl = googleMapsEmbedUrl(l);
+  const pt = mapPoint(l);
+  const precisionLabel = !pt ? ""
+    : pt.precise ? "📌 Position précise"
+    : "🔵 Position approximative (centre du quartier — RentHub ne publie pas l'adresse exacte)";
+
+  return `
+    <div class="modal-top">
+      <button class="modal-close" onclick="closeModal()" aria-label="Fermer">✕</button>
+    </div>
+    ${l.images && l.images.length ? `
+    <div class="modal-gallery">
+      ${l.images.map((u, i) => `<div class="modal-gallery-item"><img src="${esc(u)}" alt="" loading="lazy" draggable="false" oncontextmenu="return false" onclick="openLightbox(${i})" onerror="this.parentElement.style.display='none'"></div>`).join("")}
+    </div>` : ""}
+    <div class="modal-tags">
+      ${locs.map(loc => `<span class="tag">${esc(loc)}</span>`).join("")}
+      ${l.has_monthly_contract === "true" && contractVal(l.contract_monthly_raw) !== "—" ? `<span class="badge badge-monthly" style="position:static;display:inline-block">1 MOIS</span>` : ""}
+      ${contractVal(l.contract_3_month_raw) !== "—" ? `<span class="badge badge-term-3" style="position:static;display:inline-block">3 MOIS</span>` : ""}
+      ${contractVal(l.contract_6_month_raw) !== "—" ? `<span class="badge badge-term-6" style="position:static;display:inline-block">6 MOIS</span>` : ""}
+    </div>
+    ${mapsUrl ? `
+    <div>
+      <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap">
+        <a class="modal-link" style="padding:6px 12px;font-size:11px" href="${esc(mapsUrl)}" target="_blank" rel="noopener">📍 Google Maps ↗</a>
+      </div>
+      ${embedUrl ? `<iframe src="${esc(embedUrl)}" style="width:100%;height:220px;border:0;border-radius:8px;margin-top:10px" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Carte de localisation"></iframe>` : ""}
+      ${precisionLabel ? `<div style="font-size:10px;color:var(--muted);margin-top:6px">${precisionLabel}</div>` : ""}
+    </div>` : ""}
+    <div>
+      <div class="section-head">${esc(contractsSectionTitle(l))}</div>
+      <div class="modal-contracts">
+        ${renderContractsHTML(l)}
+      </div>
+    </div>
+    ${l.deposit || (l.electric_price && l.electric_price !== "Please contact") || amenities.length ? `
+    <div>
+      <div class="section-head">Description</div>
+      <div class="modal-contracts">
+        <div class="mc"><div class="mc-label">Deposit</div><div class="mc-val${l.deposit ? "" : " na"}">${l.deposit ? esc(l.deposit) : "Non communiqué"}</div></div>
+        ${l.electric_price && l.electric_price !== "Please contact" ? `<div class="mc"><div class="mc-label">Electric price</div><div class="mc-val">${esc(l.electric_price)}</div></div>` : ""}
+        <div class="mc"><div class="mc-label">Air Conditioner</div><div class="mc-val${amenities.includes("Air Conditioner") ? "" : " na"}">${amenities.includes("Air Conditioner") ? "YES" : "NO"}</div></div>
+      </div>
+    </div>` : ""}
+    ${amenities.length ? `
+    <div>
+      <div class="section-head">Équipements</div>
+      <div class="modal-amenities">${amenities.map(a=>`<span class="amenity">${esc(AMENITY_ICONS[a] || a)}</span>`).join("")}</div>
+    </div>` : ""}
+    ${(()=>{const hasWa=hasRealWhatsapp(l.whatsapp);return l.phone||l.line_id||hasWa ? `
+    <div>
+      <div class="section-head">Contact</div>
+      <div class="modal-contracts">
+        ${l.phone?`<div class="mc"><div class="mc-label">Téléphone</div><div class="mc-val">📞 ${esc(l.phone)}</div></div>`:""}
+        ${l.line_id?(()=>{
+          // line_verified===false : identifiant deja confirme inexistant par
+          // scripts/verify_line_ids.py -- on route vers line.me/ti/p/~<id>
+          // pour eviter un 404 (voir Listing.line_verified). Sinon (valide ou
+          // jamais verifie), page.line.me/<id> reste le lien qui marche vraiment.
+          const slug = encodeURIComponent(String(l.line_id).replace(/^@/,""));
+          const href = l.line_verified===false ? `https://line.me/ti/p/~${slug}` : `https://page.line.me/${slug}`;
+          return `<a class="mc mc-line" href="${href}" target="_blank" rel="noopener"><div class="mc-label">LINE</div><div class="mc-val" style="display:flex;align-items:center;gap:6px">${LINE_ICON_SVG} ${esc(l.line_id)}</div></a>`;
+        })():""}
+        ${hasWa?`<a class="mc mc-wa" href="https://api.whatsapp.com/send/?phone=${encodeURIComponent(String(l.whatsapp).replace(/\D/g,""))}&text&type=phone_number&app_absent=0" target="_blank" rel="noopener"><div class="mc-label">WhatsApp</div><div class="mc-val" style="display:flex;align-items:center;gap:6px">${WHATSAPP_ICON_SVG} ${esc(formatWhatsapp(l.whatsapp))}</div></a>`:""}
+      </div>
+    </div>` : "";})()}
+    <a class="modal-link" href="${esc(l.url)}" target="_blank" rel="noopener">Voir sur RentHub ↗</a>
+  `;
+}
+
+document.addEventListener("keydown", e => {
+  const lightboxOpen = document.getElementById("lightbox-overlay").classList.contains("open");
+  if (lightboxOpen && e.key === "ArrowLeft") { navigateLightbox(-1); return; }
+  if (lightboxOpen && e.key === "ArrowRight") { navigateLightbox(1); return; }
+  if (e.key !== "Escape") return;
+  if (lightboxOpen) { closeLightbox(); return; }
+  closeModal();
+});
+
+init();
+</script>
+</body>
+</html>

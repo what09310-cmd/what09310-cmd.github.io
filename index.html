@@ -8,25 +8,27 @@
 <meta property="og:description" content="Suivi des annonces de location en Thaïlande">
 <meta property="og:image" content="/static/logo.png">
 <meta property="og:type" content="website">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="/static/css/catalog.css">
 <link rel="stylesheet" href="/static/css/modal.css">
 <link rel="stylesheet" href="/static/css/common.css">
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
+    /* Palette triips : creme, indigo, vert foret, ciel pastel. */
     --bg:       #faf8f4;
     --surface:  #ffffff;
     --card:     #ffffff;
     --border:   #e9e4da;
     --accent:   #5046f5;
     --accent-ink: #ffffff;
+    --forest:   #1d3c10;
+
+    /* Couleurs du logo ThaiMonth, reprises sur les pilules de prix. */
     --brand-lime: #c7ef6c;
     --brand-gold: #e8b765;
+
     --blue:     #5046f5;
     --green:    #2f9e44;
     --red:      #e03131;
@@ -35,34 +37,66 @@
     --muted:    #6c6660;
     --dim:      #9b948b;
     --focus:    #5046f5;
-    --mono:     'Plus Jakarta Sans', system-ui, sans-serif;
-    --sans:     'Plus Jakarta Sans', system-ui, sans-serif;
-    --r-pill:   9999px;
-    --r-card:   20px;
-    --r-ctl:    12px;
+
+    /* Degrade du ciel du hero */
     --sky-1:    #cfe8b8;
     --sky-2:    #dcd6f9;
     --sky-3:    #cde8f4;
+
+    /* Silhouettes du hero : un seul plan, tenu a faible opacite pour ne
+       jamais concurrencer le titre. */
+    --skyline-front: #5b46c8;
+
+    /* triips n'utilise aucune chasse fixe : --mono devient une police
+       proportionnelle. Les chiffres gardent leur alignement colonne par
+       colonne grace a font-variant-numeric: tabular-nums. */
+    --mono:     'Plus Jakarta Sans', system-ui, sans-serif;
+    --sans:     'Plus Jakarta Sans', system-ui, sans-serif;
+    --display:  'Inter', system-ui, sans-serif;
+
+    --r-pill:   9999px;
+    --r-card:   20px;
+    --r-ctl:    12px;
   }
 
   body {
-    background: var(--sky-2);
+    background: var(--bg);
     color: var(--text);
     font-family: var(--sans);
     font-size: 14px;
     min-height: 100vh;
   }
-  .btn-new24h.active { background: var(--purple); border-color: var(--purple); color: #fff; font-weight: 700; }
 
-  .filter-section { display: flex; flex-direction: column; gap: 9px; }
-
-  .filter-label {
-    font-size: 11px;
-    font-family: var(--mono);
-    letter-spacing: .15em;
-    text-transform: uppercase;
-    color: var(--dim);
+  /* ── Header ── */
+  header {
+    padding: 16px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 20;
   }
+
+  .logo {
+    display: flex;
+    align-items: center;
+  }
+  .logo img {
+    height: 60px;
+    width: auto;
+    display: block;
+  }
+
+  /* ── Barre de villes ── */
+
+  /* ── Layout ── */
+
+  /* ── Sidebar ── */
+
+  /* ── Grille ── */
   .modal-gallery-item {
     position: relative;
     flex-shrink: 0;
@@ -90,7 +124,7 @@
     font-weight: 700;
     padding: 3px 9px;
     border-radius: var(--r-pill);
-    letter-spacing: .05em;
+    letter-spacing: .04em;
   }
   .cc {
     background: var(--bg);
@@ -105,8 +139,6 @@
     text-align: center;
     min-width: 0;
   }
-  .cc-val.na { color: var(--muted); font-weight: 400; font-size: 11px; }
-  .pager button.on { border-color: var(--accent); color: var(--accent); }
 
   /* ── Modal ── */
   .overlay {
@@ -149,181 +181,898 @@
   .lightbox-next { right: 20px; }
   .modal-close {
     background: none; border: 1px solid var(--border);
-    border-radius: var(--r-pill); color: var(--muted);
+    border-radius: 6px; color: var(--muted);
     width: 28px; height: 28px; cursor: pointer;
     font-size: 14px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
     transition: color .15s;
   }
   .mc-val {
+    font-variant-numeric: tabular-nums;
     font-size: 13px; font-weight: 700;
     font-family: var(--mono); color: var(--accent);
   }
-  .region-fab.active { background: var(--blue); color: #fff; }
-  .region-menu.open { display: flex; }
-  .region-item.active { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
 
+  /* ══════════════════════════════════════════════════════════════════
+     HERO — langage visuel triips : ciel pastel, navbar en pilule,
+     grosse typo Inter dont un fragment en indigo, CTA arrondi.
+     Le decor est une skyline thailandaise (temples + tours) dessinee
+     en SVG inline, plus deux nuages CSS : aucun asset externe.
+     ══════════════════════════════════════════════════════════════════ */
+
+  .hero {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    /* La navbar etant fixe, elle n'occupe plus de place dans le flux :
+       ce retrait compense sa hauteur pour que le hero garde son cadrage. */
+    padding: 76px 20px 0;
+    background: linear-gradient(165deg,
+      var(--sky-1) 0%, var(--sky-2) 46%, var(--sky-3) 100%);
+  }
+  /* Le bas du ciel se fond dans le creme de la page */
+  .hero::after {
+    content: "";
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: 130px; z-index: 0; pointer-events: none;
+    background: linear-gradient(to bottom, rgba(250,248,244,0), var(--bg));
+  }
+
+  /* ── Nuages residuels ── */
+  /* Deux nuages seulement, tres pales : ils gardent un peu de profondeur
+     dans le ciel sans revenir concurrencer la skyline. */
+  .cloud {
+    position: absolute; z-index: 0;
+    background: #fff; border-radius: var(--r-pill);
+    opacity: .45; pointer-events: none;
+  }
+  .cloud::before, .cloud::after {
+    content: ""; position: absolute; background: #fff; border-radius: 50%;
+  }
+  .cloud::before { width: 60%; height: 170%; left: 12%; bottom: 34%; }
+  .cloud::after  { width: 44%; height: 135%; right: 13%; bottom: 30%; }
+  .cloud-1 { width: 190px; height: 44px; top:  92px; left:  -34px; }
+  .cloud-2 { width: 130px; height: 32px; top:  40px; right:  7%;  opacity: .34; }
+  /* Deux nuages de plus, plus bas et plus pales que les deux premiers :
+     ils meublent les cotes du ciel sans passer derriere le titre. */
+  .cloud-3 { width: 216px; height: 48px; top: 206px; right: -56px; opacity: .38; }
+  .cloud-4 { width: 104px; height: 26px; top: 168px; left:   6%;  opacity: .28; }
+  /* Deux nuages au centre du ciel. Ils passent dans les bandes libres --
+     au-dessus de la pastille de comptage et sous le bas du titre -- parce
+     qu'un nuage arrete juste derriere une ligne de texte se lit comme une
+     tache, meme a faible opacite. */
+  .cloud-5 { width: 148px; height: 34px; top:  24px; left: 30%; opacity: .30; }
+  .cloud-6 { width: 176px; height: 40px; top:  74px; left: 56%; opacity: .24; }
+
+  /* ── Skyline thailandaise ── */
+  /* Elle est ancree sur .hero-inner, pas sur .hero : le bandeau des
+     affaires vit lui aussi dans le hero, donc un bottom:0 aurait pose la
+     skyline sous les cartes. Ancree ici, sa ligne de sol tombe juste
+     au-dessus du bandeau et sous le bloc de texte.
+     Le hero est centre et borne a 880px : left/translate/100vw la
+     ressortent en pleine largeur.
+     z-index -1 dans le contexte d'empilement de .hero-inner (z-index:2) :
+     derriere le titre, mais toujours devant le ciel.
+     Le masque efface le haut des silhouettes : les fleches et antennes
+     s'evaporent avant d'atteindre la ligne de titre. */
+  .hero-skyline {
+    position: absolute; z-index: -1; pointer-events: none;
+    bottom: -8px; left: 50%; transform: translateX(-50%);
+    width: 100vw; height: 168px;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 62%);
+            mask-image: linear-gradient(to bottom, transparent 0, #000 62%);
+  }
+  .hero-skyline svg { display: block; width: 100%; height: 100%; }
+  .skyline-front { fill: var(--skyline-front); opacity: .16; }
+
+  /* ── Navbar en pilule ── */
+  /* Fixe : reste visible pendant tout le defilement. Elle vit hors du hero,
+     dont l'overflow:hidden la retiendrait si elle etait dedans. */
+  .pillnav {
+    position: fixed; top: 18px; z-index: 100;
+    left: 50%; transform: translate3d(-50%, 0, 0);
+    /* will-change + translate3d + backface-visibility forcent la pilule sur
+       son propre calque GPU compose independamment du reste de la page :
+       sans ca, certains navigateurs (Chrome/Windows notamment) la repeignent
+       en retard pendant le defilement (elle "traine" a son ancienne position
+       ecran et chevauche les cartes du dessous un instant avant de rattraper
+       le scroll). */
+    will-change: transform;
+    backface-visibility: hidden;
+    isolation: isolate;
+    width: calc(100% - 40px); max-width: 780px;
+    background: var(--forest);
+    border-radius: var(--r-pill);
+    padding: 9px 10px 9px 22px;
+    display: flex; align-items: center; justify-content: space-between; gap: 18px;
+    box-shadow: 0 10px 28px rgba(29,60,16,.22);
+  }
+  /* Mot-symbole pose a meme la pilule, sans pastille : le PNG du logo est
+     en teal fonce et disparaitrait sur le vert foret, donc on ecrit le nom
+     en toutes lettres. La bichromie Thai/Month reprend celle du logo, en
+     versions eclaircies pour tenir le contraste sur fond sombre
+     (9:1 et 7:1 environ, tres au-dessus du seuil AA de 4.5:1). */
+  .pillnav-brand {
+    display: flex; align-items: baseline; flex-shrink: 0;
+    text-decoration: none;
+    font-family: var(--sans);
+    font-size: 25px; font-weight: 800;
+    letter-spacing: -.6px; line-height: 1;
+  }
+  .pillnav-links {
+    display: flex; align-items: center; gap: 4px;
+    flex: 1; justify-content: center;
+  }
+  .pillnav-link {
+    color: rgba(255,255,255,.82); text-decoration: none;
+    font-size: 14px; font-weight: 500;
+    padding: 7px 14px; border-radius: var(--r-pill);
+    transition: background .15s, color .15s;
+    white-space: nowrap;
+  }
+  .pillnav-link:hover { background: rgba(255,255,255,.12); color: #fff; }
+  .pillnav-cta {
+    background: var(--accent); color: #fff;
+    border-radius: var(--r-pill); padding: 10px 20px;
+    font-size: 14px; font-weight: 600; text-decoration: none;
+    white-space: nowrap; transition: filter .15s;
+  }
+  .pillnav-cta:hover { filter: brightness(1.12); }
+
+  /* ── Contenu du hero ── */
+  .hero-inner {
+    position: relative; z-index: 2;
+    max-width: 880px; margin: 0 auto;
+    padding: 58px 0 4px; text-align: center;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 11px;
+    background: rgba(255,255,255,.72);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    border-radius: var(--r-pill); padding: 10px 22px;
+    font-size: 15px; font-weight: 500; color: #443f38;
+  }
+  .hero-badge i {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #37b24d; flex-shrink: 0;
+  }
+  .hero-badge b { font-variant-numeric: tabular-nums; color: #14130f; }
+
+  @media (max-width: 768px){
+    .hero-badge { gap: 10px; padding: 9px 19px; font-size: 14px; }
+    .hero-badge i { width: 9px; height: 9px; }
+  }
+
+  .hero h1 {
+    font-family: var(--display);
+    font-size: clamp(32px, 4.6vw, 46px);
+    font-weight: 600; line-height: 1.13;
+    letter-spacing: -1.2px; color: #14130f;
+    margin: 22px 0 0;
+  }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero-line1 { white-space: nowrap; }
+  @media (max-width: 640px){
+    .hero-line1 { white-space: normal; }
+  }
+
+  .btn-cta {
+    display: inline-block; margin-top: 28px;
+    background: var(--accent); color: #fff;
+    border-radius: var(--r-pill); padding: 15px 34px;
+    font-size: 15px; font-weight: 600; text-decoration: none;
+  }
+  /* Bouton secondaire : meme pilule et meme couleur que .btn-cta */
+  .btn-ghost {
+    background: var(--accent); color: #fff;
+    border: none;
+  }
+  .hero-actions {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 12px; margin-top: 28px;
+  }
+  .hero-actions .btn-cta { margin-top: 0; }
+
+  .hero-proof {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 10px; margin-top: 28px;
+  }
+  .proof {
+    display: flex; flex-direction: column; align-items: center;
+    background: rgba(255,255,255,.78);
+    border-radius: 16px; padding: 8px 18px;
+    font-size: 13px; color: #4d473f;
+  }
+  .proof-label { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+  .proof b { color: #14130f; font-variant-numeric: tabular-nums; font-weight: 700; }
+
+  /* ── Bandeau defilant des meilleures affaires ── */
+  /* Reconstruit sur un scroll natif (overflow-x: auto + scrollLeft), comme
+     triips.com, plutot que sur une piste pilotee entierement par
+     translateX en JS : le scroll natif recoit gratuitement la molette, le
+     trackpad, le tactile et le glisser-de-la-barre, sans code specifique
+     ni risque de десync avec la pilule fixe. setupDealsMarquee() n'ajoute
+     plus que le glisser-a-la-souris et l'auto-defilement, tous deux via
+     scrollLeft. */
+  .marquee-wrap {
+    position: relative; z-index: 2;
+    margin-top: 40px; padding-bottom: 46px;
+  }
+  .marquee-wrap::before, .marquee-wrap::after {
+    content: ""; position: absolute; top: 0; bottom: 46px; width: 60px;
+    z-index: 3; pointer-events: none;
+  }
+  .marquee-wrap::before {
+    left: 0;
+    background: linear-gradient(to right, var(--sky-3), transparent);
+  }
+  .marquee-wrap::after {
+    right: 0;
+    background: linear-gradient(to left, var(--sky-3), transparent);
+  }
+  .marquee {
+    overflow-x: auto; overflow-y: hidden;
+    cursor: grab; scrollbar-width: none; -ms-overflow-style: none;
+  }
+  .marquee::-webkit-scrollbar { display: none; }
+  .marquee.is-dragging { cursor: grabbing; scroll-snap-type: none; }
+  .marquee-track {
+    display: flex; gap: 20px; width: max-content;
+    user-select: none; -webkit-user-drag: none;
+  }
+
+  /* Lien, pas bouton : la carte navigue vers la page payante, donc le clic
+     milieu et « ouvrir dans un nouvel onglet » doivent marcher.
+     Grand format : la photo est inseree dans une carte blanche, comme sur
+     la reference, et la ville se lit de loin. */
+  .deal {
+    display: block;
+    width: 440px; flex-shrink: 0;
+    background: #fff; border: none; padding: 10px;
+    border-radius: 22px; overflow: hidden;
+    box-shadow: 0 8px 24px rgba(20,19,15,.10);
+    text-align: left; font: inherit; color: inherit;
+    text-decoration: none;
+    transition: transform .18s, box-shadow .18s;
+  }
+  .deal:hover, .deal:focus-visible {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 30px rgba(20,19,15,.16);
+  }
+  .deal-img {
+    position: relative; height: 268px;
+    border-radius: 16px; overflow: hidden;
+    background: var(--border);
+  }
+  .deal-img img {
+    width: 100%; height: 100%; object-fit: cover;
+    transform: scaleX(-1);
+    -webkit-user-drag: none; user-select: none;
+  }
+  .deal-img .no-img {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; color: var(--muted);
+  }
+  /* Pilule de prix : fond vert foret et vert clair du logo. Un seul prix,
+     le loyer mensuel -- ni prix barre ni comparaison entre durees. */
+  .deal-price {
+    position: absolute; top: 14px; right: 14px;
+    display: inline-flex; align-items: baseline; gap: 5px;
+    background: var(--forest);
+    border-radius: var(--r-pill); padding: 8px 20px;
+    font-variant-numeric: tabular-nums;
+    box-shadow: 0 4px 14px rgba(0,0,0,.26);
+  }
+  .deal-price b { color: var(--brand-lime); font-size: 27px; font-weight: 800; letter-spacing: -.5px; }
+  .deal-price small { color: var(--brand-lime); font-size: 13px; font-weight: 600; opacity: .75; }
+  .deal-body { padding: 16px 10px 8px; }
+  .deal-route {
+    font-size: 27px; font-weight: 700; line-height: 1.15;
+    letter-spacing: -.6px; color: var(--accent);
+  }
+
+  @media (max-width: 768px){
+    .pillnav { padding-left: 16px; }
+    .hero-inner { padding-top: 40px; }
+    .hero-skyline { height: 116px; }
+    .deal { width: 290px; }
+    .deal-img { height: 190px; }
+    .deal-price b { font-size: 21px; }
+    .deal-route { font-size: 21px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .deal:hover { transform: none; }
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     COMMENT CA MARCHE — trois cartes-tickets empilees et legerement
+     inclinees, filet pointille et encoches, puis un panneau photo + CTA.
+     La photo vient d'une vraie annonce de la base.
+     ══════════════════════════════════════════════════════════════════ */
+
+  .how { background: var(--bg); padding: 140px 24px 72px; text-align: center; }
+  .how-title {
+    font-family: var(--display);
+    font-size: clamp(28px, 4.4vw, 46px);
+    font-weight: 700; letter-spacing: -1px;
+    text-align: center; color: #14130f;
+    margin: 0 0 54px;
+  }
+  .how-top-cta {
+    display: block;
+    margin: 0 0 22px;
+    padding: 22.5px 51px;
+    font-size: 22.5px;
+  }
+  .how-top-cta-wrap {
+    display: flex;
+    justify-content: center;
+  }
+  .how-grid {
+    max-width: 1040px; margin: 0 auto;
+    display: grid; grid-template-columns: 1.05fr .95fr;
+    gap: 54px; align-items: start; text-align: left;
+  }
+
+  .how-steps { list-style: none; margin: 0; padding: 0; }
+  .how-step {
+    position: relative;
+    display: flex; align-items: center; gap: 14px;
+    border-radius: 18px; padding: 26px 30px 26px 18px;
+    box-shadow: 0 8px 22px rgba(20,19,15,.09);
+  }
+  /* Empilement : chaque carte mord sur la precedente et penche un peu. */
+  .how-step-1 { background: #a52028; color: #fff; z-index: 3; transform: rotate(-1.1deg); margin-left: 0; }
+  .how-step-2 { background: #ffffff;              z-index: 2; transform: rotate(.7deg);   margin: -12px 0 0 20px; }
+  .how-step-3 { background: #2d2a4a; color: #fff; z-index: 1; transform: rotate(-.6deg); margin: -12px 0 0 8px; }
+
+  .how-num {
+    font-family: var(--display);
+    font-size: 32px; font-weight: 700;
+    flex-shrink: 0; width: 48px; text-align: center;
+  }
+
+  /* Filet pointille + encoches rondes facon ticket */
+  .how-body { position: relative; padding-left: 24px; flex: 1; }
+  .how-body::before {
+    content: ""; position: absolute; left: 0; top: -26px; bottom: -26px;
+    border-left: 2px dotted rgba(20,19,15,.30);
+  }
+  .how-step-1 .how-body::before,
+  .how-step-3 .how-body::before { border-left-color: rgba(255,255,255,.45); }
+  .how-step::before, .how-step::after {
+    content: ""; position: absolute; left: 86px;
+    width: 17px; height: 17px; border-radius: 50%;
+    background: var(--bg); transform: translateX(-50%);
+  }
+  .how-step::before { top: -8px; }
+  .how-step::after  { bottom: -8px; }
+
+  .how-body h3 {
+    font-size: 16px; font-weight: 700; margin: 0 0 7px;
+    display: flex; align-items: center; gap: 9px;
+  }
+  .how-body p { margin: 0; font-size: 14px; line-height: 1.5; opacity: .85; }
+
+  /* Panneau de droite */
+  .how-aside {
+    background: #fff; border-radius: var(--r-card);
+    padding: 14px 14px 24px;
+    box-shadow: 0 10px 30px rgba(20,19,15,.08);
+    display: flex; flex-direction: column; align-items: center; gap: 20px;
+  }
+  .how-photo {
+    position: relative; width: 100%; aspect-ratio: 4 / 3.6;
+    border-radius: 14px; overflow: hidden; background: var(--border);
+  }
+  .how-photo img {
+    width: 100%; height: 100%; object-fit: cover;
+    transform: scaleX(-1);
+    -webkit-user-drag: none; user-select: none;
+  }
+  .how-caption {
+    position: absolute; left: 12px; bottom: 12px;
+    background: rgba(255,255,255,.93);
+    -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+    border-radius: var(--r-pill); padding: 7px 15px;
+    font-size: 12px; font-weight: 600; color: #14130f;
+    font-variant-numeric: tabular-nums;
+  }
+  .how-cta { margin-top: 0; }
+
+  @media (max-width: 900px){
+    .how { padding: 16px 20px 54px; }
+    .how-grid { grid-template-columns: 1fr; gap: 40px; }
+    .how-step-2 { margin-left: 14px; }
+    .how-step-3 { margin-left: 6px; }
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     MUR D'ANNONCES — trois pistes pleine largeur qui defilent en sens
+     alterne (gauche / droite / gauche). Chaque piste contient sa liste
+     en double : l'animation parcourt exactement la moitie de la piste,
+     donc la seconde copie prend la place de la premiere sans saut.
+     ══════════════════════════════════════════════════════════════════ */
+
+  .wall { background: var(--bg); padding: 72px 0 32px; overflow: hidden; }
+  .wall-title {
+    font-family: var(--display);
+    font-size: clamp(28px, 4.4vw, 46px);
+    font-weight: 700; letter-spacing: -1px;
+    text-align: center; color: #14130f;
+    margin: 0 0 46px; padding: 0 24px;
+  }
+
+  .wall-rows { display: flex; flex-direction: column; gap: 18px; }
+  .wall-row {
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 4%, #000 96%, transparent);
+            mask-image: linear-gradient(to right, transparent, #000 4%, #000 96%, transparent);
+  }
+  /* Durees recalculees apres l'agrandissement des vignettes : la piste passe
+     de ~4900 a ~7600px, il faut donc ~1,56x plus de temps pour conserver les
+     memes 31 et 28 px/s qu'avant. */
+  .wall-track { display: flex; gap: 18px; width: max-content; }
+  .wall-track-left  { animation: wall-left  122s linear infinite; }
+  .wall-track-right { animation: wall-right 138s linear infinite; }
+  @keyframes wall-left  { from { transform: translateX(0);    } to { transform: translateX(-50%); } }
+  @keyframes wall-right { from { transform: translateX(-50%); } to { transform: translateX(0);    } }
+  .wall-row:hover .wall-track,
+  .wall-row:focus-within .wall-track { animation-play-state: paused; }
+
+  /* Lien, comme .deal ci-dessus. */
+  .wcard {
+    display: block;
+    position: relative; flex-shrink: 0;
+    width: 300px; height: 340px;
+    border: none; padding: 0; font: inherit; color: inherit; text-align: left;
+    text-decoration: none;
+    border-radius: 18px; overflow: hidden;
+    background: var(--border); cursor: pointer;
+    transition: transform .18s;
+  }
+  .wcard:hover, .wcard:focus-visible { transform: translateY(-4px); }
+  .wcard img {
+    width: 100%; height: 100%; object-fit: cover;
+    transform: scaleX(-1);
+    -webkit-user-drag: none; user-select: none;
+  }
+  /* Voile sombre : rend le texte lisible quelle que soit la photo. */
+  .wcard::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(to top,
+      rgba(0,0,0,.88) 0%, rgba(0,0,0,.55) 34%, rgba(0,0,0,0) 64%);
+  }
+  /* Meme pilule que .deal-price, en plus compact. */
+  .wcard-price {
+    position: absolute; top: 12px; right: 12px; z-index: 2;
+    display: inline-flex; align-items: baseline; gap: 4px;
+    background: var(--forest);
+    border-radius: var(--r-pill); padding: 7px 16px;
+    font-variant-numeric: tabular-nums;
+    box-shadow: 0 3px 12px rgba(0,0,0,.30);
+  }
+  .wcard-price b { color: var(--brand-lime); font-size: 20px; font-weight: 800; letter-spacing: -.4px; }
+  .wcard-price small { color: var(--brand-lime); font-size: 11px; font-weight: 600; opacity: .75; }
+  .wcard-body {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
+    padding: 16px 18px 18px; color: #fff;
+  }
+  .wcard-loc { font-size: 19px; font-weight: 700; line-height: 1.2; letter-spacing: -.3px; }
+  .wcard-terms { display: flex; gap: 6px; margin-top: 11px; }
+  .wcard-term {
+    background: rgba(255,255,255,.24);
+    -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+    border-radius: var(--r-pill); padding: 4px 11px;
+    font-size: 11px; font-weight: 700; letter-spacing: .03em;
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     QUESTIONS FREQUENTES — accordeons <details>/<summary> natifs, comme
+     sur la reference. Aucun JavaScript : l'ouverture, le clavier et
+     l'annonce aux lecteurs d'ecran sont geres par le navigateur.
+     ══════════════════════════════════════════════════════════════════ */
+
+  /* La navbar fixe recouvrirait le titre quand on saute ici depuis le
+     pied de page : on decale la cible d'ancre de sa hauteur. */
+  .faq { background: var(--bg); padding: 8px 24px 48px; scroll-margin-top: 92px; }
+  .faq-inner { max-width: 620px; margin: 0 auto; }
+  .faq-title {
+    font-family: var(--display);
+    font-size: clamp(28px, 4.4vw, 46px);
+    font-weight: 700; letter-spacing: -1px;
+    text-align: center; color: #14130f;
+    margin: 0 0 40px;
+  }
+  .faq-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .faq-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+  }
+  .faq-card summary {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 18px; padding: 18px 22px; cursor: pointer;
+    font-family: var(--display);
+    font-size: 16px; font-weight: 600; color: #14130f;
+    list-style: none;
+  }
+  /* Retire le triangle par defaut, remplace par le chevron */
+  .faq-card summary::-webkit-details-marker { display: none; }
+  .faq-card summary::marker { content: ""; }
+  .faq-card summary:hover { color: var(--accent); }
+  .faq-card summary:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; border-radius: 16px; }
+
+  .faq-chevron {
+    flex-shrink: 0; width: 18px; height: 18px;
+    color: var(--accent); transition: transform .2s;
+  }
+  .faq-card[open] .faq-chevron { transform: rotate(180deg); }
+
+  .faq-answer {
+    padding: 0 22px 20px;
+    font-size: 15px; line-height: 1.62; color: #5e584f;
+  }
+  .faq-answer p { margin: 0; }
+  .faq-answer p + p { margin-top: 10px; }
+
+  @media (prefers-reduced-motion: reduce){
+    .faq-chevron { transition: none; }
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     APPEL FINAL — deux halos pastel (vert a gauche, lavande a droite)
+     poses sur le creme, et un gros titre indigo. Les halos sont des
+     cercles flous en pseudo-elements : aucune image.
+     ══════════════════════════════════════════════════════════════════ */
+
+  .cta-final {
+    position: relative; overflow: hidden;
+    background: var(--bg);
+    padding: 56px 24px 116px;
+    text-align: center;
+  }
+  .cta-final::before, .cta-final::after {
+    content: ""; position: absolute; top: 50%;
+    width: 540px; height: 540px; border-radius: 50%;
+    transform: translateY(-50%);
+    filter: blur(80px); opacity: .5; pointer-events: none;
+  }
+  .cta-final::before { left: -190px; background: var(--sky-1); }
+  .cta-final::after  { right: -190px; background: var(--sky-2); }
+
+  .cta-inner { position: relative; z-index: 1; max-width: 780px; margin: 0 auto; }
+  .cta-headline {
+    font-family: var(--display);
+    font-size: clamp(32px, 5.8vw, 60px);
+    font-weight: 700; line-height: 1.1; letter-spacing: -1.4px;
+    color: var(--accent); margin: 0;
+  }
+  .cta-headline b { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .cta-sub {
+    font-size: clamp(19px, 2.5vw, 26px); font-weight: 700;
+    color: #14130f; margin: 28px 0 0;
+  }
+  .cta-note { font-size: 16px; line-height: 1.55; color: #5e584f; margin: 12px 0 0; }
+  .cta-final .btn-cta { margin-top: 30px; }
+
+  /* ══════════════════════════════════════════════════════════════════
+     PIED DE PAGE
+     ══════════════════════════════════════════════════════════════════ */
+
+  .site-footer {
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    padding: 30px 24px 26px;
+  }
+  .footer-row {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px 28px; margin-bottom: 22px;
+  }
+  .footer-links {
+    display: flex; flex-wrap: wrap;
+    gap: 12px 28px;
+  }
+  .footer-links a, .footer-social a {
+    color: #5e584f; text-decoration: none;
+    font-size: 14px; font-weight: 500;
+    transition: color .15s;
+  }
+  .footer-links a:hover, .footer-social a:hover { color: var(--accent); }
+  .footer-social {
+    display: flex; flex-wrap: wrap;
+    gap: 12px 24px;
+  }
+  .footer-legal {
+    text-align: center; font-size: 13px; color: var(--dim);
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 14px;
+  }
+  .footer-bar {
+    width: 48px; height: 4px; margin: 0 auto;
+    border-radius: 999px; background: var(--border);
+  }
+
+  @media (max-width: 768px){
+    .cta-final { padding: 70px 20px 78px; }
+    .cta-final::before, .cta-final::after { width: 340px; height: 340px; }
+    .footer-row { justify-content: center; text-align: center; }
+    .footer-links, .footer-social { justify-content: center; gap: 10px 20px; }
+  }
+
+  @media (max-width: 768px){
+    .faq { padding-bottom: 68px; }
+    .faq-card summary { font-size: 15px; padding: 16px 18px; }
+    .faq-answer { padding: 0 18px 18px; }
+
+    .wall { padding: 54px 0 32px; }
+    .wcard { width: 225px; height: 255px; }
+    .wcard-price b { font-size: 16px; }
+    .wcard-loc { font-size: 15px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .wall-track { animation: none; }
+    .wcard:hover { transform: none; }
+  }
 </style>
-<script src="/static/auth-header.js" defer></script>
 </head>
 <body>
 
-<header>
-  <a class="logo" href="/123" aria-label="ThaiMonth">
-    <span class="logo-thai">Thai</span><span class="logo-month">Month</span>
-  </a>
-  <a class="header-map" href="/vip.html">Voir la carte</a>
-</header>
-
-<!-- FILTRES VILLE + QUARTIER -->
-<div class="city-bar">
-  <div class="hstat city-total"><span>Logement</span><b id="h-total">—</b></div>
-  <div class="location-filter" id="featured-cities">
-    <label class="city-label" for="featured-city-select">⭐ Grandes villes :</label>
-    <select class="city-select" id="featured-city-select" onchange="toggleFeaturedCity(this.value)">
-      <option value="">Toutes les grandes villes</option>
-      <option value="Bangkok">Bangkok</option>
-      <option value="Pattaya">Pattaya</option>
-      <option value="Chiang Mai">Chiang Mai</option>
-      <option value="Phuket">Phuket</option>
-      <option value="Hua Hin">Hua Hin</option>
-      <option value="Ko Samui">Ko Samui</option>
-      <option value="Ko Phangan">Ko Phangan</option>
-      <option value="Udon Thani">Udon Thani</option>
-      <option value="Krabi">Krabi</option>
-    </select>
+<!-- Navbar fixe : hors du hero, qui a overflow:hidden et la retiendrait. -->
+<nav class="pillnav" aria-label="Navigation principale">
+  <a class="pillnav-brand" href="/"><span class="brand-thai">Thai</span><span class="brand-month">Month</span></a>
+  <div class="pillnav-links">
+    <a class="pillnav-link" href="/carte-thailande.html">Voir la carte</a>
+    <a class="pillnav-link" href="/premium.html">Voir les annonces</a>
   </div>
-  <div class="location-filter">
-    <label class="city-label" for="city-select">🏙️ Ville :</label>
-    <select class="city-select" id="city-select" onchange="selectCity(this.value)">
-      <option value="">Toutes les villes</option>
-    </select>
-  </div>
-  <div class="location-filter">
-    <label class="city-label" for="district-select">📍 Quartier :</label>
-    <select class="city-select" id="district-select" onchange="selectDistrict(this.value)" disabled>
-      <option value="">Sélectionnez d'abord une ville</option>
-    </select>
-  </div>
-  <div class="city-stats" aria-label="Statistiques des logements">
-    <div class="hstat"><span>1 mois dispo</span><b id="h-monthly">—</b></div>
-    <div class="hstat"><span>3 mois dispo</span><b id="h-3month">—</b></div>
-    <div class="hstat"><span>6 mois dispo</span><b id="h-6month">—</b></div>
-  </div>
-</div>
+  <a class="pillnav-cta" href="payant.html">Version Payante</a>
+</nav>
 
-<div class="shell">
+<!-- ══ HERO ═══════════════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="cloud cloud-1"></div>
+  <div class="cloud cloud-2"></div>
+  <div class="cloud cloud-3"></div>
+  <div class="cloud cloud-4"></div>
+  <div class="cloud cloud-5"></div>
+  <div class="cloud cloud-6"></div>
 
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
+  <div class="hero-inner">
+    <span class="hero-badge">
+      <i aria-hidden="true"></i>
+      <span><b id="hero-tracked">—</b> logements suivis en Thaïlande</span>
+    </span>
 
-    <div class="filter-section">
-      <button class="btn-new24h" id="btn-new24h" onclick="toggleNew24h()">
-        🆕 New <span class="new24h-count" id="new24h-count"></span>
-      </button>
+    <h1><span class="hero-line1">Trouver un Logement en Thaïlande</span><br><em>Au meilleur prix</em></h1>
+
+    <div class="hero-actions">
+      <a class="btn-cta btn-ghost" href="/carte-thailande.html">Voir la carte</a>
+      <a class="btn-cta btn-ghost" href="/premium.html">Voir les annonces</a>
     </div>
 
-    <div class="filter-section">
-      <label class="filter-label" for="f-slider">Prix mensuel max (EUR)</label>
-      <div class="slider-wrap">
-        <input type="range" id="f-slider" min="0" max="1000" step="1" value="1000">
-        <div class="slider-info">
-          <span>0</span>
-          <span id="slider-val">Tous les prix</span>
+    <div class="hero-proof">
+      <div class="proof"><span class="proof-label">Contrat</span><span><b id="hero-1m">—</b> 1&nbsp;mois</span></div>
+      <div class="proof"><span class="proof-label">Contrat</span><span><b id="hero-3m">—</b> 3&nbsp;mois</span></div>
+      <div class="proof"><span class="proof-label">Contrat</span><span><b id="hero-6m">—</b> 6&nbsp;mois</span></div>
+    </div>
+
+    <!-- Skyline : plan lointain (vert) puis plan proche (violet). Chedis et
+         wat a gauche, prang de style Wat Arun au centre, tours de Bangkok a
+         droite. Purement decoratif, donc masquee aux lecteurs d'ecran. -->
+    <div class="hero-skyline" aria-hidden="true">
+      <svg viewBox="0 0 1440 260" preserveAspectRatio="xMidYMax slice"
+           xmlns="http://www.w3.org/2000/svg" focusable="false">
+        <!-- Un seul plan, et le minimum de silhouettes qui evoque encore la
+             Thailande : un chedi et un wat a gauche, un prang de style Wat
+             Arun au centre, un palmier, trois tours de Bangkok a droite.
+             La version precedente empilait un second plan de treize
+             immeubles et une quinzaine de formes de plus : le decor se lisait
+             comme une texture derriere le titre au lieu d'un horizon. -->
+        <g class="skyline-front">
+          <!-- chedi, a gauche -->
+          <path d="M52 260v-30h86v30Zm10-30v-20h66v20Zm9-20v-18h48v18Zm2-18q3-54 22-80 19 26 22 80Zm19-84v-30h6v30Zm3-30-6-10 6-30 6 30Z"/>
+
+          <!-- wat : salle et trois toits superposes, avec chofa aux extremites -->
+          <path d="M170 260v-46h190v46Z"/>
+          <path d="M160 214l40-38h130l40 38Z"/>
+          <path d="M186 176l30-34h98l30 34Z"/>
+          <path d="M206 142l26-24h66l26 24Z"/>
+          <path d="M160 214q-13-9-7-26 11 11 11 26Z"/>
+          <path d="M370 214q13-9 7-26-11 11-11 26Z"/>
+          <path d="M232 118q-8-8-3-18 8 7 8 18Z"/>
+          <path d="M298 118q8-8 3-18-8 7-8 18Z"/>
+
+          <!-- prang central, silhouette de type Wat Arun -->
+          <path d="M668 260v-42l7-5v-18l7-6v-20q14-70 18-109 4 39 18 109v20l7 6v18l7 5v42Z"/>
+
+          <!-- palmier -->
+          <path d="M916 260q-3-40 9-68l8 4q-10 26-8 64Z"/>
+          <path d="M928 196q-19-12-33-7 12-12 33 2Zm0 0q-9-21-24-26 17-2 24 23Zm0 0q19-14 34-10-11-13-34 5Z"/>
+
+          <!-- tours de Bangkok -->
+          <path d="M1030 260V96l14-26h26l14 26v164Z"/>
+          <rect x="1055" y="20" width="4" height="52"/>
+          <rect x="1176" y="118" width="34" height="142"/>
+          <circle cx="1193" cy="110" r="21"/>
+          <path d="M1240 260V132l60-24v152Z"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Meilleures affaires du moment, alimente depuis /listings -->
+  <div class="marquee-wrap">
+    <div class="marquee" id="deals-scroll" aria-label="Meilleures affaires du moment">
+      <div class="marquee-track" id="deals-track"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ COMMENT ÇA MARCHE ══════════════════════════════════════════ -->
+<section class="how">
+  <div class="how-top-cta-wrap">
+    <a class="btn-cta btn-ghost how-top-cta" href="/payant.html">Version Payante</a>
+  </div>
+  <h2 class="how-title">Comment ça marche</h2>
+
+  <div class="how-grid">
+    <ol class="how-steps">
+      <li class="how-step how-step-1">
+        <span class="how-num" aria-hidden="true">1.</span>
+        <div class="how-body">
+          <h3><span aria-hidden="true">🔍</span> Trouvez votre logement</h3>
+          <p>
+            Choisissez votre ville, votre quartier, votre budget et la
+            durée de votre séjour. Affinez votre recherche en quelques
+            clics.
+          </p>
         </div>
-      </div>
-      <div class="price-grid" style="margin-top:8px">
-        <label class="visually-hidden" for="f-min">Prix minimum en euros</label>
-        <input class="filter-input" type="number" id="f-min" placeholder="Min €" step="10">
-        <label class="visually-hidden" for="f-max">Prix maximum en euros</label>
-        <input class="filter-input" type="number" id="f-max" placeholder="Max €" step="10">
-      </div>
+      </li>
+
+      <li class="how-step how-step-2">
+        <span class="how-num" aria-hidden="true">2.</span>
+        <div class="how-body">
+          <h3><span aria-hidden="true">📩</span> Prenez contact</h3>
+          <p>
+            Vous avez trouvé un logement qui vous plaît&nbsp;? Contactez
+            directement le propriétaire pour vérifier les disponibilités
+            et obtenir les dernières informations.
+          </p>
+        </div>
+      </li>
+
+      <li class="how-step how-step-3">
+        <span class="how-num" aria-hidden="true">3.</span>
+        <div class="how-body">
+          <h3><span aria-hidden="true">🔑</span> Emménagez</h3>
+          <p>
+            Une fois votre location confirmée, il ne vous reste plus
+            qu’à préparer votre arrivée et profiter de votre séjour en
+            Thaïlande.
+          </p>
+        </div>
+      </li>
+    </ol>
+
+    <div class="how-aside">
+      <!-- Photo tiree d'une vraie annonce, remplie par renderHowPhoto() -->
+      <div class="how-photo" id="how-photo"></div>
+      <a class="btn-cta how-cta" href="/premium.html">Voir les annonces</a>
     </div>
-
-    <div class="filter-section" id="contract-filter-section">
-      <div class="filter-label">Contrat</div>
-      <div class="chip-group">
-        <label class="chip chip-monthly">
-          <input type="checkbox" id="f-monthly" onchange="applyFilters()" aria-label="Afficher uniquement les annonces avec contrat 1 mois">
-          <span class="chip-label">1 mois</span>
-        </label>
-        <label class="chip chip-3month">
-          <input type="checkbox" id="f-3month" onchange="applyFilters()" aria-label="Afficher uniquement les annonces avec contrat 3 mois">
-          <span class="chip-label">3 mois</span>
-        </label>
-        <label class="chip chip-6month">
-          <input type="checkbox" id="f-6month" onchange="applyFilters()" aria-label="Afficher uniquement les annonces avec contrat 6 mois">
-          <span class="chip-label">6 mois</span>
-        </label>
-      </div>
-    </div>
-
-    <div class="filter-section">
-      <div class="filter-label">Équipements</div>
-      <div class="chip-group chip-equip">
-        <label class="chip">
-          <input type="checkbox" id="f-am-desk" onchange="applyFilters()" aria-label="Afficher uniquement les annonces avec Desk">
-          <span class="chip-label">🖥️ Desk</span>
-        </label>
-        <label class="chip">
-          <input type="checkbox" id="f-am-wifi" onchange="applyFilters()" aria-label="Afficher uniquement les annonces avec WIFI">
-          <span class="chip-label">📶 WIFI</span>
-        </label>
-        <label class="chip">
-          <input type="checkbox" id="f-am-smoking" onchange="applyFilters()" aria-label="Afficher uniquement les annonces avec Smoking">
-          <span class="chip-label">🚬 Smoking</span>
-        </label>
-        <label class="chip">
-          <input type="checkbox" id="f-am-pool" onchange="applyFilters()" aria-label="Afficher uniquement les annonces avec Pool">
-          <span class="chip-label">🏊 Pool</span>
-        </label>
-        <label class="chip">
-          <input type="checkbox" id="f-am-fitness" onchange="applyFilters()" aria-label="Afficher uniquement les annonces avec Fitness">
-          <span class="chip-label">🏋️ Fitness</span>
-        </label>
-        <label class="chip">
-          <input type="checkbox" id="f-am-store" onchange="applyFilters()" aria-label="Afficher uniquement les annonces avec Convenient Store">
-          <span class="chip-label">🏪 Store</span>
-        </label>
-      </div>
-    </div>
-
-    <button class="btn-reset" onclick="resetFilters()">↺ Réinitialiser les filtres</button>
-
-  </aside>
-
-  <!-- MAIN -->
-  <main class="main">
-    <div class="toolbar">
-      <div class="result-info" role="status" aria-live="polite"><b id="res-count">—</b> annonces</div>
-      <label class="visually-hidden" for="f-sort">Trier les annonces</label>
-      <select class="sort-select" id="f-sort" onchange="applyFilters()">
-        <option value="updated">Récentes d'abord</option>
-        <option value="price_asc">Prix ↑</option>
-        <option value="price_desc">Prix ↓</option>
-        <option value="name">Nom A→Z</option>
-      </select>
-    </div>
-
-    <div id="grid-wrap">
-      <div class="state-box"><div class="spinner"></div>Chargement…</div>
-    </div>
-
-    <div class="pager" id="pager"></div>
-  </main>
-</div>
-
-<!-- FILTRE RÉGION -->
-<div class="region-fab-wrap" id="region-fab-wrap">
-  <div class="region-menu" id="region-menu" role="menu">
-    <button class="region-item" data-region="Centre" onclick="selectRegion('Centre')" role="menuitem">Centre</button>
-    <button class="region-item" data-region="Nord" onclick="selectRegion('Nord')" role="menuitem">Nord</button>
-    <button class="region-item" data-region="Nord-Est" onclick="selectRegion('Nord-Est')" role="menuitem">Nord-Est (Isaan)</button>
-    <button class="region-item" data-region="Est" onclick="selectRegion('Est')" role="menuitem">Est</button>
-    <button class="region-item" data-region="Sud" onclick="selectRegion('Sud')" role="menuitem">Sud</button>
   </div>
-  <button class="region-fab" id="region-fab" onclick="toggleRegionMenu()" aria-haspopup="true" aria-expanded="false" aria-label="Filtrer par région">🗺️</button>
-</div>
+</section>
+
+<!-- ══ MUR D'ANNONCES ═════════════════════════════════════════════ -->
+<!-- Trois pistes en sens alterne, remplies par renderWall(). -->
+<section class="wall">
+  <h2 class="wall-title">Ce qui est disponible en ce moment</h2>
+
+  <div class="wall-rows">
+    <div class="wall-row"><div class="wall-track wall-track-left"  id="wall-1"></div></div>
+    <div class="wall-row"><div class="wall-track wall-track-right" id="wall-2"></div></div>
+    <div class="wall-row"><div class="wall-track wall-track-left"  id="wall-3"></div></div>
+  </div>
+</section>
+
+<!-- ══ QUESTIONS FRÉQUENTES ═══════════════════════════════════════ -->
+<section class="faq" id="faq">
+  <div class="faq-inner">
+    <h2 class="faq-title">Questions fréquentes</h2>
+
+    <div class="faq-list">
+      <details class="faq-card">
+        <summary>
+          Êtes-vous une agence immobilière&nbsp;?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 9l6 6 6-6"/>
+          </svg>
+        </summary>
+        <div class="faq-answer">
+          <p>
+            Non. ThaiMonth est un service qui aide les locataires à trouver
+            un logement en Thaïlande et à entrer en contact avec les
+            propriétaires.
+          </p>
+        </div>
+      </details>
+
+      <details class="faq-card">
+        <summary>
+          Les prix affichés ici sont-ils exacts&nbsp;?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 9l6 6 6-6"/>
+          </svg>
+        </summary>
+        <div class="faq-answer">
+          <p>
+            Les prix affichés sont en euros, convertis à taux fixe depuis le baht thaïlandais.
+            Les montants sont <strong>indicatifs</strong>&nbsp;: ils sont arrondis à la dizaine
+            au-delà de 150&nbsp;€.
+          </p>
+        </div>
+      </details>
+
+      <details class="faq-card">
+        <summary>
+          Est-ce que vous prenez une commission sur chaque logement&nbsp;?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 9l6 6 6-6"/>
+          </svg>
+        </summary>
+        <div class="faq-answer">
+          <p>
+            Non. ThaiMonth ne prend aucune commission sur les logements.
+            Vous payez uniquement notre service de recherche et
+            d&rsquo;accompagnement.
+          </p>
+        </div>
+      </details>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══ APPEL FINAL ════════════════════════════════════════════════ -->
+<section class="cta-final">
+  <div class="cta-inner">
+    <h2 class="cta-headline">
+      <b id="cta-count">—</b> logements suivis<br>partout en Thaïlande
+    </h2>
+    <p class="cta-sub">Commencez votre recherche.</p>
+    <p class="cta-note">
+      La première sélection est gratuite et sans engagement&nbsp;: un logement,
+      sa présentation détaillée et la mise en relation.
+    </p>
+    <a class="btn-cta" href="/payant.html">Version Payante</a>
+  </div>
+</section>
+
+<!-- ══ PIED DE PAGE ═══════════════════════════════════════════════ -->
+<footer class="site-footer">
+  <div class="footer-row">
+    <nav class="footer-links" aria-label="Liens de bas de page">
+      <a href="payant.html">Tarifs</a>
+      <a href="#faq">FAQ</a>
+      <a href="mailto:contact@thaimonth.com">Contact</a>
+      <a href="#">À propos</a>
+      <a href="#">Conditions</a>
+      <a href="#">Confidentialité</a>
+    </nav>
+    <nav class="footer-social" aria-label="Réseaux sociaux">
+      <a href="#" target="_blank" rel="noopener">TikTok</a>
+      <a href="#" target="_blank" rel="noopener">Instagram</a>
+    </nav>
+  </div>
+  <p class="footer-legal">
+    © <span id="footer-year">2026</span> ThaiMonth. Tous droits réservés.
+  </p>
+  <div class="footer-bar"></div>
+</footer>
 
 <!-- MODAL -->
 <div class="overlay" id="overlay" onclick="closeModal(event)">
@@ -343,33 +1092,7 @@
 <script src="/static/js/common.js"></script>
 <script src="/static/js/geo.js"></script>
 <script src="/static/js/modal.js"></script>
-<script src="/static/js/catalog.js"></script>
-<script>window._coreApplyFilters = applyFilters;</script>
 <script>
-const EUR_TO_THB = 38.28;
-
-function applyFilters() {
-  const minEl = document.getElementById("f-min");
-  const maxEl = document.getElementById("f-max");
-  const minEur = minEl.value;
-  const maxEur = maxEl.value;
-  minEl.value = minEur === "" ? "" : Math.round(minEur * EUR_TO_THB);
-  maxEl.value = maxEur === "" ? "" : Math.round(maxEur * EUR_TO_THB);
-  window._coreApplyFilters();
-  minEl.value = minEur;
-  maxEl.value = maxEur;
-}
-</script>
-<script>
-// La barre de villes passe sur deux lignes sous ~1550px : on publie sa
-// hauteur reelle pour que la sidebar sticky se cale juste en dessous.
-(() => {
-  const bar = document.querySelector(".city-bar");
-  if (!bar || !("ResizeObserver" in window)) return;
-  new ResizeObserver(() => {
-    document.documentElement.style.setProperty("--city-bar-h", `${bar.offsetHeight}px`);
-  }).observe(bar);
-})();
 
 // ── Init ────────────────────────────────────────────────────────────
 
@@ -377,102 +1100,669 @@ async function init() {
   await Promise.all([loadStats(), loadListings(), loadDistrictCoords(), loadAddressCoords()]);
 }
 
-Object.entries(REGION_MAP).forEach(([city, region]) => { REGION_BY_KEY[key(city)] = region; });
+// Pré-remplit les filtres depuis l'URL (ex: redirection depuis le
+// formulaire de payant.html vers les annonces correspondantes).
 
-document.addEventListener("click", (e) => {
-  const wrap = document.getElementById("region-fab-wrap");
-  if (wrap && !wrap.contains(e.target)) {
-    document.getElementById("region-menu").classList.remove("open");
-    document.getElementById("region-fab").setAttribute("aria-expanded", "false");
-  }
-});
+// Regroupe les provinces à faible volume (<5 annonces) dans la province
+// voisine la plus proche de la même région, pour alléger le menu Ville.
 
-document.getElementById("f-slider").addEventListener("input", function() {
-  const pos = parseInt(this.value);
-  const price = sliderPosToPrice(pos);
-  const priceEur = Math.round(price / EUR_TO_THB);
-  document.getElementById("slider-val").textContent = pos >= SLIDER_RES ? "Tous les prix" : `≤ ${priceEur.toLocaleString("fr-FR")} €`;
-  document.getElementById("f-max").value = pos < SLIDER_RES ? priceEur : "";
-  updateContractSectionVisibility();
-  applyFilters();
-});
+// Districts promus au rang de "ville" dans le menu, avec un nom plus
+// parlant (ex: le district administratif "Bang Lamung" correspond à la
+// zone touristique connue sous le nom de Pattaya).
 
-["f-min","f-max"].forEach(id => {
-  document.getElementById(id).addEventListener("input", () => {
-    if (id === "f-max") updateContractSectionVisibility();
-    clearTimeout(_t); _t = setTimeout(applyFilters, 280);
-  });
-});
+// Regroupe les villes/provinces canoniques (retournées par cityOf) en 5
+// grandes régions de Thaïlande, pour le filtre régional (bouton flottant).
+
+// Grandes villes mises en avant : correspond sur la province (ex: Bangkok,
+// Phuket) ou le district (ex: Pattaya, qui est un district de Chonburi).
+
+// Slider (échelle exponentielle : plus de précision sur les loyers bas)
+
+// Exposant choisi pour que le milieu du curseur (50%) corresponde à 10 000 ฿
+
+// En dessous de 100 ฿, aucun contrat réel n'existe à ce prix : on masque
+// le filtre "Contrat" plutôt que de laisser des cases à cocher inutiles.
+
+// Debounce texte
 
 // ── Rendu ────────────────────────────────────────────────────────────
 
-function cardHTML(l) {
-  const district = l.district || l.subdistrict || "";
-  const c1 = contractVal(l.contract_monthly_raw);
-  const c3 = contractVal(l.contract_3_month_raw);
-  const c6 = contractVal(l.contract_6_month_raw);
-  const updated = l.source_updated_at ? new Date(l.source_updated_at).toLocaleDateString("fr-FR") : "";
+// ── Nom de ville affiche sur les cartes ───────────────────────────────
+// Les cartes de la vitrine ne portent que la ville. Le champ `city` est
+// presque toujours vide dans /listings, donc on retombe sur la province,
+// qui en Thailande fait office de nom de ville (Bangkok, Chiang Mai...).
+//
+// Exception : quelques districts sont la vraie destination connue, pas
+// leur province -- Bang Lamung se dit Pattaya, pas Chonburi. La table
+// vient de index.html, ou elle sert deja au menu "Ville".
+//
+// On n'importe volontairement PAS le PROVINCE_MERGE_MAP de index.html :
+// il regroupe des provinces pour le filtre (Songkhla y pointe sur Surat
+// Thani), ce qui afficherait une ville fausse sur une carte.
 
-  // Quand un toggle "X mois uniquement" est actif, on n'affiche que le
-  // prix de la catégorie sélectionnée (pas les autres durées disponibles).
-  const monthlyOnly = document.getElementById("f-monthly").checked;
-  const threeMonthOnly = document.getElementById("f-3month").checked;
-  const sixMonthOnly = document.getElementById("f-6month").checked;
-  const anyContractOnly = monthlyOnly || threeMonthOnly || sixMonthOnly;
-  const show1 = !anyContractOnly || monthlyOnly;
-  const show3 = !anyContractOnly || threeMonthOnly;
-  const show6 = !anyContractOnly || sixMonthOnly;
+function cityLabel(l) {
+  const district = String(l.district || "").toLowerCase();
+  for (const [from, to] of Object.entries(DISTRICT_AS_CITY)) {
+    if (district.includes(from.toLowerCase())) return to;
+  }
+  return l.city || l.province || "";
+}
 
-  // Catégories dérivées côté serveur depuis la description (fiable, par
-  // annonce) — voir src/normalizers/amenities.py. On ne re-devine rien
-  // côté client.
-  const amenities = l.amenities || [];
-  const categoryIcons = {
-    "Desk": AMENITY_ICONS["Desk"],
-    "In-room WIFI": AMENITY_ICONS["In-room WIFI"],
-    "Smoking": AMENITY_ICONS["Smoking"],
-    "Pool": AMENITY_ICONS["Pool"],
-    "Fitness": AMENITY_ICONS["Fitness"],
-    "Convenient Store": AMENITY_ICONS["Convenient Store"],
-  };
-  const categories = Object.keys(categoryIcons)
-    .filter(k => amenities.includes(k))
-    .map(k => categoryIcons[k]);
+// ── Photos de ville ────────────────────────────────────────────────────
+// Le bandeau, le mur et "comment ca marche" montraient la photo de la
+// piece elle-meme (l.images[0]) : sur la demo publique, ca donne un
+// apercu gratuit du catalogue reel. On affiche a la place une photo qui
+// illustre la ville de l'annonce (source : Wikipedia/Wikimedia Commons,
+// une image par province), la meme pour toutes les annonces d'une ville
+// donnee. cityLabel() peut renvoyer une ville de district (Pattaya, Ko
+// Samui...) en plus des provinces : ces cles sont dans la meme table.
+const PROVINCE_IMAGES = {
+  "Bangkok": "/static/img/provinces/bangkok.webp",
+  "Pathumthani": "/static/img/provinces/pathumthani.webp",
+  "Samut Prakarn": "/static/img/provinces/samut-prakarn.webp",
+  "Chonburi": "/static/img/provinces/chonburi.webp",
+  "Nonthaburi": "/static/img/provinces/nonthaburi.webp",
+  "Phuket": "/static/img/provinces/phuket.webp",
+  "Chiang Mai": "/static/img/provinces/chiang-mai.webp",
+  "Rayong": "/static/img/provinces/rayong.webp",
+  "Nakhon Pathom": "/static/img/provinces/nakhon-pathom.webp",
+  "Nakhon Ratchasima": "/static/img/provinces/nakhon-ratchasima.webp",
+  "Samut Sakhon": "/static/img/provinces/samut-sakhon.webp",
+  "Khon Kaen": "/static/img/provinces/khon-kaen.webp",
+  "Phra Nakhon Sri Ayutthaya": "/static/img/provinces/phra-nakhon-sri-ayutthaya.webp",
+  "Songkhla": "/static/img/provinces/songkhla.webp",
+  "Surat Thani": "/static/img/provinces/surat-thani.webp",
+  "Chachoengsao": "/static/img/provinces/chachoengsao.webp",
+  "Chiang Rai": "/static/img/provinces/chiang-rai.webp",
+  "Prachaubkirikhan": "/static/img/provinces/prachaubkirikhan.webp",
+  "Ratchburi": "/static/img/provinces/ratchburi.webp",
+  "Phitsanulok": "/static/img/provinces/phitsanulok.webp",
+  "Udon Thani": "/static/img/provinces/udon-thani.webp",
+  "Ubon Ratchathani": "/static/img/provinces/ubon-ratchathani.webp",
+  "Krabi": "/static/img/provinces/krabi.webp",
+  "Lamphang": "/static/img/provinces/lamphang.webp",
+  "Petchburi": "/static/img/provinces/petchburi.webp",
+  "Maha Sarakham": "/static/img/provinces/maha-sarakham.webp",
+  "Nakhon Nayok": "/static/img/provinces/nakhon-nayok.webp",
+  "Nakhon Sri Thammarat": "/static/img/provinces/nakhon-sri-thammarat.webp",
+  "Prachinburi": "/static/img/provinces/prachinburi.webp",
+  "Saraburi": "/static/img/provinces/saraburi.webp",
+  "Suphanburi": "/static/img/provinces/suphanburi.webp",
+  "Surin": "/static/img/provinces/surin.webp",
+  "Chaiyaphum": "/static/img/provinces/chaiyaphum.webp",
+  "Lopburi": "/static/img/provinces/lopburi.webp",
+  "Nong Bua Lam Phu": "/static/img/provinces/nong-bua-lam-phu.webp",
+  "Si Sa Ket": "/static/img/provinces/si-sa-ket.webp",
+  "Buri Ram": "/static/img/provinces/buri-ram.webp",
+  "Ranong": "/static/img/provinces/ranong.webp",
+  "Sakon Nakhon": "/static/img/provinces/sakon-nakhon.webp",
+  "Samut Songkram": "/static/img/provinces/samut-songkram.webp",
+  "Singburi": "/static/img/provinces/singburi.webp",
+  "Amnat Charoen": "/static/img/provinces/amnat-charoen.webp",
+  "Chainat": "/static/img/provinces/chainat.webp",
+  "Chanthaburi": "/static/img/provinces/chanthaburi.webp",
+  "Kanchanaburi": "/static/img/provinces/kanchanaburi.webp",
+  "Lamphun": "/static/img/provinces/lamphun.webp",
+  "Mukdahan": "/static/img/provinces/mukdahan.webp",
+  "Pattani": "/static/img/provinces/pattani.webp",
+  "Phrae": "/static/img/provinces/phrae.webp",
+  "Roi Et": "/static/img/provinces/roi-et.webp",
+  "Tak": "/static/img/provinces/tak.webp",
+  "Trang": "/static/img/provinces/trang.webp",
+  "Uthai Thani": "/static/img/provinces/uthai-thani.webp",
+  "Yala": "/static/img/provinces/yala.webp",
+  "Yasothon": "/static/img/provinces/yasothon.webp",
+  "Pattaya": "/static/img/provinces/pattaya.webp",
+  "Ko Samui": "/static/img/provinces/ko-samui.webp",
+  "Hua Hin": "/static/img/provinces/hua-hin.webp",
+  "Ko Phangan": "/static/img/provinces/ko-phangan.webp",
+};
+const PROVINCE_IMAGE_FALLBACK = "/static/img/provinces/bangkok.webp";
 
-  return `<div class="card" tabindex="0" role="button" aria-label="Voir le détail : ${esc(l.name || "annonce")}" onclick="openModal(${l.id})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openModal(${l.id});}">
-    <div class="card-img">${l.images && l.images.length
-      ? `<img src="${esc(l.images[0])}" alt="" loading="lazy" draggable="false" oncontextmenu="return false" onerror="this.parentElement.innerHTML='<div class=&quot;no-img&quot;>🏠</div>'">`
-      : `<div class="no-img">🏠</div>`}</div>
-    <div class="card-badge-slot">${show1 && l.has_monthly_contract === "true" && c1 !== "—" ? `<span class="badge badge-monthly" style="position:static;display:inline-block">1 MOIS</span>` : ""}${show3 && c3 !== "—" ? `<span class="badge badge-term-3" style="position:static;display:inline-block">3 MOIS</span>` : ""}${show6 && c6 !== "—" ? `<span class="badge badge-term-6" style="position:static;display:inline-block">6 MOIS</span>` : ""}</div>
+// Regroupement pour le bandeau du haut et "comment ca marche" seulement :
+// Samut Prakarn fait partie du Grand Bangkok et n'est pas une ville que
+// les visiteurs reconnaissent. Volontairement PAS applique a cityLabel()
+// (mur d'annonces, grille, carte) -- meme logique que le commentaire sur
+// DISTRICT_AS_CITY plus haut : ca afficherait une ville fausse ailleurs,
+// la ou la precision compte (carte) ou ou la vraie photo du logement
+// suffit deja a situer l'annonce (mur).
+const CITY_DISPLAY_MERGE = {
+  "Samut Prakarn": "Bangkok",
+};
 
-    <div class="card-body">
+function dealCityLabel(l) {
+  const ville = cityLabel(l);
+  return CITY_DISPLAY_MERGE[ville] || ville;
+}
 
-      <div class="card-loc">
-        ${district ? `<span class="loc-district">${esc(district)}</span>` : ""}
-        ${l.province ? `<span class="loc-province">${esc(l.province)}</span>` : ""}
-      </div>
+function cityImage(l) {
+  return PROVINCE_IMAGES[dealCityLabel(l)] || PROVINCE_IMAGE_FALLBACK;
+}
 
-      ${categories.length ? `
-        <div class="card-categories">
-          ${categories.map(c => `<span class="amenity-badge">${esc(c)}</span>`).join("")}
-        </div>
-      ` : ""}
+// ── Prix en euros ─────────────────────────────────────────────────────
+// Taux fige en dur : les montants en euros derivent donc avec le change
+// reel. C'est aussi ce qui justifie l'arrondi -- au-dela de 150 EUR,
+// afficher l'euro pres donnerait une precision que ce taux n'a pas. En
+// dessous, on garde l'euro pres : l'ecart compte pour les petits budgets.
 
-      ${(() => {
-        const boxes = [
-          show1 && c1 !== "—" ? `<div class="cc"><div class="cc-label">1 mois</div><div class="cc-val">${c1}</div></div>` : "",
-          show3 && c3 !== "—" ? `<div class="cc"><div class="cc-label">3 mois</div><div class="cc-val">${c3}</div></div>` : "",
-          show6 && c6 !== "—" ? `<div class="cc"><div class="cc-label">6 mois</div><div class="cc-val">${c6}</div></div>` : "",
-        ].filter(Boolean);
-        return boxes.length
-          ? `<div class="card-contracts">${boxes.join("")}</div>`
-          : "";
-      })()}
+const TAUX_THB_EUR = 38.28;
+const SEUIL_ARRONDI_EUR = 150;
 
-      ${updated ? `<div class="card-date">Mis à jour: ${updated}</div>` : ""}
+function eurLabel(n) {
+  const brut = n / TAUX_THB_EUR;
+  const arrondi = brut > SEUIL_ARRONDI_EUR
+    ? Math.round(brut / 10) * 10
+    : Math.round(brut);
+  return arrondi.toLocaleString("fr-FR");
+}
 
+// Les cartes n'affichent qu'un seul prix : le loyer mensuel, sans prix
+// barre ni comparaison entre durees d'engagement. Les tarifs 3 et 6 mois
+// existent dans les donnees mais ne servent ici qu'aux badges du mur.
+
+// ── Hero : pastilles de statistiques ──────────────────────────────────
+
+async function loadStats() {
+  try {
+    const s = await fetch(`${API}/stats`).then(r => r.json());
+    setHeroStat("hero-tracked", s.total_active);
+    // Comptage côté serveur: `allData` ne contient plus qu'un échantillon
+    // de DEMO_SAMPLE_SIZE annonces, dont on ne peut plus déduire le
+    // volume réel des nouveautés.
+    setHeroStat("hero-new", s.new_today);
+    setHeroStat("hero-1m", s.monthly_contract_count);
+    setHeroStat("hero-3m", s.three_month_contract_count);
+    setHeroStat("hero-6m", s.six_month_contract_count);
+    setHeroStat("cta-count", s.total_active);
+  } catch(e) {}
+}
+
+// Annee du copyright calculee au chargement : ecrite en dur, elle serait
+// fausse au 1er janvier suivant.
+(function () {
+  const el = document.getElementById("footer-year");
+  if (el) el.textContent = new Date().getFullYear();
+})();
+
+// Taille de l'échantillon public. Doit rester alignée sur
+// PUBLIC_DEMO_LIMIT (src/api/main.py) : au-delà, l'API tronque
+// silencieusement.
+const DEMO_SAMPLE_SIZE = 12;
+
+async function loadListings() {
+  try {
+    // Un seul appel, et pas de pagination : cette page est une vitrine,
+    // pas un client du catalogue. L'API plafonne de toute façon une
+    // requête anonyme à PUBLIC_DEMO_LIMIT annonces et ignore `offset`
+    // (main.py::_public_limit, _public_offset), donc boucler sur les
+    // pages suivantes rendrait la même page indéfiniment.
+    const r = await fetch(`${API}/listings?limit=${DEMO_SAMPLE_SIZE}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+
+    const batch = await r.json();
+    if (!Array.isArray(batch)) throw new Error("Réponse /listings invalide");
+    allData = batch;
+
+    renderDeals();
+  } catch(e) {
+    // Vitrine : aucune zone de résultats où afficher l'erreur. Les pastilles
+    // du hero gardent leurs tirets et les bandeaux restent vides.
+    console.error(e);
+  }
+}
+
+function setHeroStat(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = Number(value || 0).toLocaleString("fr-FR");
+}
+
+// ── Hero : bandeau defilant des meilleures affaires ───────────────────
+// On retient les annonces les moins cheres qui ont une photo ET un prix
+// mensuel exploitable. contractNum() applique deja le garde-fou
+// MIN_VALID_PRICE sur les fourchettes aberrantes du scraping, donc on ne
+// re-filtre rien ici.
+
+const DEALS_COUNT = 14;
+
+function renderDeals() {
+  const track = document.getElementById("deals-track");
+  if (!track) return;
+
+  // Meme regle de prix que le mur (wallPrice) : n'exiger que le tarif
+  // 1 mois strict laissait 2 cartes sur les 12 de l'echantillon public,
+  // et la bande ne montrait que ces deux-la en boucle -- rien a voir en
+  // la faisant defiler. Le tarif 3 ou 6 mois reste un loyer mensuel ; la
+  // pilule affiche "/mois" sans preciser la duree (choix produit : un seul
+  // prix, pas de comparaison entre durees -- voir .deal-price).
+  const pool = allData
+    .filter(l => l.status !== "removed"
+              && l.images && l.images.length
+              && wallPrice(l) !== null)
+    .sort((a, b) => wallPrice(a).amount - wallPrice(b).amount);
+
+  // Un prix affiche n'apparait qu'une fois dans la bande : deux cartes a
+  // "340 €" se lisent comme un doublon, meme si les villes different. On
+  // garde la premiere (la moins chere du pool trie) et on pioche plus loin.
+  const seen = new Set();
+  const candidates = [];
+  for (const l of pool) {
+    const key = eurLabel(wallPrice(l).amount);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    candidates.push(l);
+  }
+
+  // La bande defile en boucle : deux cartes de la meme ville cote a cote se
+  // lisent comme un doublon. On choisit donc chaque carte en evitant la ville
+  // de la precedente. S'il ne reste plus que des cartes de cette ville, on
+  // raccourcit la bande plutot que d'afficher deux fois la meme ville collees.
+  const deals = [];
+  const rest = candidates.slice();
+  while (deals.length < DEALS_COUNT && rest.length) {
+    const prev = deals.length ? dealCityLabel(deals[deals.length - 1]) : null;
+    const i = rest.findIndex((l) => dealCityLabel(l) !== prev);
+    if (i < 0) break;
+    deals.push(rest.splice(i, 1)[0]);
+  }
+  // La piste reboucle : la derniere carte touche la premiere.
+  while (deals.length > 2 && dealCityLabel(deals[deals.length - 1]) === dealCityLabel(deals[0])) {
+    deals.pop();
+  }
+
+  if (!deals.length) { track.innerHTML = ""; return; }
+
+  // La liste est doublee : setupDealsMarquee() boucle la position sur la
+  // moitie de la largeur de la piste, donc la seconde moitie prend
+  // exactement la place de la premiere et la boucle est nette.
+  track.innerHTML = deals.concat(deals).map(dealHTML).join("");
+  setupDealsMarquee();
+  const scroller = document.getElementById("deals-scroll");
+  scroller && scroller._measure && scroller._measure();
+
+  renderHowPhoto();
+  renderWall();
+}
+
+// ── Defilement natif du bandeau des affaires, comme triips.com ─────────
+// L'ancienne piste pilotait translateX() entierement en JS (rAF + lissage
+// de vitesse) : la molette/trackpad ne faisait rien par defaut (corrige
+// une fois avec un handler wheel dedie, au prix d'un code fragile), et le
+// rendu s'est retrouve plusieurs fois desynchronise. triips.com fait
+// defiler sa bande "trending" avec un scroll natif (overflow-x:auto +
+// scrollLeft) : la molette/trackpad, le tactile et la barre de defilement
+// marchent gratuitement, sans code specifique. On reprend ce principe --
+// scrollLeft pilote a la fois le glisser-souris et l'auto-defilement --
+// et on boucle en sautant de la moitie de la largeur de la piste doublee
+// (voir renderDeals) des qu'on l'atteint.
+function setupDealsMarquee() {
+  const scroller = document.getElementById("deals-scroll");
+  const track = document.getElementById("deals-track");
+  if (!scroller || !track || scroller.dataset.marqueeReady) return;
+  scroller.dataset.marqueeReady = "1";
+
+  const SPEED = 36; // px/s, defilement automatique
+  let lw = 0;
+  let dragging = false, hasDragged = false, dragStartX = 0, dragStartScroll = 0;
+  const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function measure() { lw = track.scrollWidth / 2; }
+  window.addEventListener("resize", measure);
+  window.addEventListener("load", measure);
+  scroller._measure = measure;
+
+  // Ramene une position dans (0, lw] : la piste est doublee, donc x et
+  // x + lw affichent les memes pixels. Borne haute incluse et borne basse
+  // exclue, deliberement : a 0 le navigateur ne peut plus reculer et la
+  // position doit repartir de lw ; et si 0 comme lw etaient tous deux
+  // ramenes de l'autre cote, le saut 0 -> lw declenchait un evenement
+  // scroll qui relisait lw comme "trop loin", revenait a 0, et ainsi de
+  // suite sans fin -- la bande semblait bloquee des qu'on la tirait vers
+  // la droite a l'arrivee sur la page.
+  function loop(x) {
+    if (lw <= 0) measure();
+    if (lw <= 0) return x;
+    x = ((x % lw) + lw) % lw;
+    return x === 0 ? lw : x;
+  }
+  // Deplace la bande de `delta` px en bouclant AVANT d'assigner : assigner
+  // une cible negative laissait le navigateur la borner a 0, et le
+  // depassement (le geste au-dela du bord) etait perdu.
+  function scrollBy(delta) {
+    scroller.scrollLeft = loop(scroller.scrollLeft + delta);
+  }
+  // Pour le defilement natif (tactile, trackpad) : on ne peut que corriger
+  // apres coup.
+  function wrap() {
+    const x = loop(scroller.scrollLeft);
+    if (x !== scroller.scrollLeft) scroller.scrollLeft = x;
+  }
+
+  let rafId = null, lastTime = null;
+  function tick(now) {
+    if (lw <= 0) measure();
+    if (lastTime === null) lastTime = now;
+    const dt = Math.min(0.1, (now - lastTime) / 1000);
+    lastTime = now;
+    if (!dragging) scrollBy(SPEED * dt);
+    rafId = requestAnimationFrame(tick);
+  }
+  function startRAF() {
+    if (reduced) { measure(); return; }
+    if (!rafId) {
+      measure();
+      if (scroller.scrollLeft <= 0) scroller.scrollLeft = 1;
+      lastTime = null;
+      rafId = requestAnimationFrame(tick);
+    }
+  }
+  function stopRAF() {
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; lastTime = null; }
+  }
+  document.addEventListener("visibilitychange", () => { document.hidden ? stopRAF() : startRAF(); });
+
+  // On coupe l'auto-defilement des qu'une main humaine prend la bande --
+  // survol souris, glisser, ou focus clavier sur une carte -- et on ne le
+  // relance que si aucune de ces prises n'est encore active.
+  scroller.addEventListener("mouseenter", stopRAF);
+  scroller.addEventListener("mouseleave", () => { if (!dragging) resume(); });
+  scroller.addEventListener("focusin", stopRAF);
+  scroller.addEventListener("focusout", resume);
+
+  let inView = true;
+  function resume() { if (inView && !document.hidden) startRAF(); }
+  if ("IntersectionObserver" in window) {
+    const vobs = new IntersectionObserver((entries) => {
+      inView = entries[0] && entries[0].isIntersecting;
+      if (inView && !document.hidden) startRAF(); else stopRAF();
+    }, { root: null, rootMargin: "200px 0px", threshold: 0 });
+    vobs.observe(scroller);
+  }
+  if (inView) startRAF();
+
+  function endDrag() {
+    dragging = false;
+    scroller.classList.remove("is-dragging");
+    setTimeout(() => { hasDragged = false; }, 0);
+  }
+
+  scroller.addEventListener("mousedown", (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    dragging = true; hasDragged = false;
+    scroller.classList.add("is-dragging");
+    dragStartX = e.clientX; dragStartScroll = scroller.scrollLeft;
+    function mm(ev) {
+      if (!dragging) return;
+      const dx = ev.clientX - dragStartX;
+      if (Math.abs(dx) > 4) hasDragged = true;
+      scroller.scrollLeft = loop(dragStartScroll - dx);
+    }
+    function mu() {
+      endDrag();
+      document.removeEventListener("mousemove", mm);
+      document.removeEventListener("mouseup", mu);
+    }
+    document.addEventListener("mousemove", mm);
+    document.addEventListener("mouseup", mu);
+  });
+
+  // Le tactile et le trackpad font defiler scroller nativement (overflow-x:
+  // auto) : on se contente d'y accrocher le bouclage.
+  scroller.addEventListener("scroll", wrap, { passive: true });
+
+  // La molette verticale d'une souris, elle, fait defiler la page et pas
+  // la bande (un overflow-x seul ne la recoit pas) : on la redirige vers
+  // scrollLeft. Un geste deja horizontal (trackpad) est laisse au
+  // navigateur. deltaMode 1 = Firefox en "lignes", pas en pixels.
+  scroller.addEventListener("wheel", (e) => {
+    if (Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
+    e.preventDefault();
+    scrollBy(e.deltaMode === 1 ? e.deltaY * 40 : e.deltaY);
+  }, { passive: false });
+  scroller.addEventListener("touchstart", stopRAF, { passive: true });
+  scroller.addEventListener("touchend", resume, { passive: true });
+
+  // Un clic qui a fait glisser la piste de plus de 4px ne doit pas suivre
+  // le lien de la carte : sinon glisser envoie sur /payant.html.
+  scroller.addEventListener("click", (e) => {
+    if (hasDragged) { e.preventDefault(); e.stopPropagation(); }
+  }, true);
+}
+
+// ── Mur d'annonces : trois pistes en sens alterne ─────────────────────
+// Les annonces sont reparties en round-robin plutot que par tranches :
+// allData arrive groupe par province, et decouper en trois blocs aurait
+// donne une ligne entiere de Bangkok puis une ligne entiere d'ailleurs.
+
+const WALL_ROWS = 3;
+const WALL_PER_ROW = 12;
+// Largeur occupee par une vignette, prise dans sa version la plus etroite :
+// .wcard mesure 225px sous 768px de large (300px au-dela) plus le gap de
+// 18px de .wall-track. Sert a calculer combien de copies d'une piste il
+// faut pour couvrir l'ecran -- sous-estimer la vignette allonge un peu la
+// piste, la surestimer y laisserait un trou.
+const WALL_CARD_W = 243;
+
+// Largeur a couvrir par une piste. `window.innerWidth` vaut 0 quand la
+// page est rendue dans un onglet encore masque, ce qui donnait une seule
+// copie de la liste et donc le trou qu'on cherche a supprimer : on prend
+// la plus grande des mesures disponibles, avec un plancher genereux.
+function wallViewportWidth() {
+  const el = document.querySelector(".wall-rows");
+  return Math.max(
+    el ? el.getBoundingClientRect().width : 0,
+    document.documentElement.clientWidth || 0,
+    window.innerWidth || 0,
+    1440
+  );
+}
+
+// Une fenetre elargie peut rendre les pistes plus courtes que l'ecran :
+// on les reconstruit apres le redimensionnement, puis on redemande aux
+// marquees de se re-mesurer.
+let wallResizeTimer = null;
+window.addEventListener("resize", () => {
+  clearTimeout(wallResizeTimer);
+  wallResizeTimer = setTimeout(renderWall, 200);
+});
+
+// wallCardHTML n'affiche que la ville et le prix (id/adresse restent
+// masques pour l'appelant anonyme) : deux annonces differentes qui
+// partagent ces deux champs -- contractNum() ne garde que le bas de la
+// fourchette, donc "15 000-19 500" et "15 000-20 700" s'affichent pareil --
+// sont donc indiscernables a l'ecran, meme si ce sont deux lignes
+// distinctes en base. Rare, mais quand ca tombe sur deux annonces voisines
+// du pool, on veut l'absorber avant que la rotation des lignes ne le colle
+// partout : voir spreadWallAdjacent() ci-dessous.
+function wallSignature(l) {
+  const p = wallPrice(l);
+  return `${cityLabel(l)}|${p ? p.amount : ""}`;
+}
+
+// Reordonne le pool pour qu'aucune paire voisine ne partage sa signature
+// (ville + prix affiche) -- y compris en anneau, la derniere case avec la
+// premiere. C'est deliberement fait une seule fois ici, avant la rotation
+// par ligne : chaque ligne de renderWall() est une rotation du meme
+// tableau, et une rotation ne change pas quelles cases se touchent -- si
+// l'anneau n'a de collision nulle part, aucune rotation ni repetition en
+// aval (buckets, copies, le doublement final) ne peut en introduire une.
+// Contrairement a renderDeals(), on ne retire aucune annonce : le pool est
+// deja limite a PUBLIC_DEMO_LIMIT et le reduire encore forcerait le mur a
+// boucler sur moins de 12 vignettes.
+function spreadWallAdjacent(items) {
+  const groups = new Map();
+  for (const l of items) {
+    const key = wallSignature(l);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(l);
+  }
+  if (groups.size <= 1) return items.slice();
+
+  const buckets = [...groups.values()];
+  const result = [];
+  let lastKey = null;
+  while (result.length < items.length) {
+    buckets.sort((a, b) => b.length - a.length);
+    const bucket = buckets.find(b => b.length && wallSignature(b[0]) !== lastKey)
+      || buckets.find(b => b.length);
+    const item = bucket.shift();
+    result.push(item);
+    lastKey = wallSignature(item);
+  }
+
+  // L'anneau se referme : la derniere case retrouve la premiere des que la
+  // ligne est repetee. Si elles collident encore, on cherche une carte a
+  // echanger avec la derniere qui casse le bouclage sans en recreer un
+  // juste avant -- au pire on la laisse telle quelle.
+  const last = result.length - 1;
+  if (last > 1 && wallSignature(result[0]) === wallSignature(result[last])) {
+    for (let k = 1; k < last; k++) {
+      if (wallSignature(result[k]) !== wallSignature(result[0])
+          && wallSignature(result[k]) !== wallSignature(result[last - 1])) {
+        [result[k], result[last]] = [result[last], result[k]];
+        break;
+      }
+    }
+  }
+  return result;
+}
+
+function renderWall() {
+  const rows = [
+    document.getElementById("wall-1"),
+    document.getElementById("wall-2"),
+    document.getElementById("wall-3"),
+  ];
+  if (rows.some(r => !r)) return;
+
+  // N'exiger que le prix mensuel strict rejetait les annonces qui n'ont
+  // qu'un tarif 3 ou 6 mois -- un tiers de l'echantillon deja restreint
+  // (PUBLIC_DEMO_LIMIT) -- et forcait le mur a boucler sur un pool trop
+  // petit pour couvrir l'ecran sans repetition visible. wallCardHTML
+  // affiche desormais le premier tarif disponible avec sa duree.
+  const pool = allData.filter(l => l.status !== "removed"
+                                && l.images && l.images.length
+                                && wallPrice(l) !== null);
+  if (!pool.length) { rows.forEach(r => { r.innerHTML = ""; }); return; }
+
+  // L'echantillon public filtre (image + prix mensuel exploitable) tombe
+  // souvent sous WALL_ROWS * WALL_PER_ROW : le decouper en 3 sous-groupes
+  // disjoints ne laissait que 2 ou 3 vignettes par piste, visiblement
+  // dupliquees des qu'on repete la piste pour couvrir l'ecran. Chaque
+  // ligne pioche desormais dans le pool entier, avec un decalage
+  // (rotation) different par ligne pour que les 3 lignes ne defilent pas
+  // en phase. Un decalage de 1 seul cran laissait deux lignes presque
+  // identiques, glissees d'une colonne -- vu en diagonale ca ressemble a
+  // une meme annonce repetee juste en dessous. Le decalage est maintenant
+  // reparti sur toute la largeur du pool (un tiers, deux tiers).
+  const base = spreadWallAdjacent(pool.slice(0, WALL_ROWS * WALL_PER_ROW));
+  const shift = Math.max(1, Math.round(base.length / WALL_ROWS));
+  const buckets = [0, 1, 2].map(i => {
+    const offset = (i * shift) % base.length;
+    return base.slice(offset).concat(base.slice(0, offset));
+  });
+
+  buckets.forEach((items, i) => {
+    if (!items.length) { rows[i].innerHTML = ""; return; }
+    // L'echantillon public est petit (PUBLIC_DEMO_LIMIT), et le filtre
+    // ci-dessus en retire encore une part : une piste ne contenait par
+    // moment que deux ou trois vignettes, donc moins large que la
+    // fenetre. L'animation translate la piste de la moitie de sa
+    // largeur, si bien qu'une piste trop courte laissait un trou a
+    // gauche -- la section paraissait manquer d'annonces.
+    // On repete donc la liste jusqu'a couvrir la largeur visible avant
+    // de doubler l'ensemble (le doublement est ce qui rend la boucle
+    // continue : voir le commentaire de renderDeals()).
+    const copies = Math.max(1, Math.ceil(
+      wallViewportWidth() / (items.length * WALL_CARD_W)
+    ));
+    let seq = [];
+    for (let k = 0; k < copies; k++) seq = seq.concat(items);
+    rows[i].innerHTML = seq.concat(seq).map(wallCardHTML).join("");
+  });
+}
+
+// Prix a afficher sur une vignette du mur : le tarif 1 mois s'il existe,
+// sinon le premier tarif disponible (3 puis 6 mois) -- le taux depend de
+// la duree d'engagement mais reste un prix mensuel dans les trois cas.
+// Retourne null si aucun des trois n'est exploitable.
+function wallPrice(l) {
+  const n = contractNum(l.contract_monthly_raw);
+  if (n !== null) return { amount: n, term: "/mois" };
+  const c3 = contractNum(l.contract_3_month_raw);
+  if (c3 !== null) return { amount: c3, term: "/mois (3 mois)" };
+  const c6 = contractNum(l.contract_6_month_raw);
+  if (c6 !== null) return { amount: c6, term: "/mois (6 mois)" };
+  return null;
+}
+
+function wallCardHTML(l) {
+  const price = wallPrice(l);
+  const n = contractNum(l.contract_monthly_raw);
+  const c3 = contractNum(l.contract_3_month_raw);
+  const c6 = contractNum(l.contract_6_month_raw);
+  const ville = cityLabel(l);
+
+  // Memes regles d'affichage que les badges des cartes de la grille.
+  const terms = [];
+  if (l.has_monthly_contract === "true" && n !== null) terms.push("1 MOIS");
+  if (c3 !== null) terms.push("3 MOIS");
+  if (c6 !== null) terms.push("6 MOIS");
+
+  return `<a class="wcard" href="/payant.html"
+    aria-label="Voir cette annonce à ${esc(ville)} sur la version payante">
+    <img src="${esc(l.images[0])}" alt="" loading="lazy" draggable="false"
+         oncontextmenu="return false" onerror="this.remove()">
+    <span class="wcard-price"><b>${eurLabel(price ? price.amount : null)} \u20ac</b><small>${price ? esc(price.term) : ""}</small></span>
+    <span class="wcard-body">
+      <span class="wcard-loc">${esc(ville)}</span>
+      ${terms.length ? `<span class="wcard-terms">${
+        terms.map(t => `<span class="wcard-term">${t}</span>`).join("")
+      }</span>` : ""}
+    </span>
+  </a>`;
+}
+
+// ── "Comment ca marche" : illustration tiree d'une vraie annonce ──────
+// /listings ne renvoie qu'une vignette par annonce (les galeries completes
+// n'arrivent que sur /listings/{id}), donc on ne peut pas trier sur le
+// nombre de photos : on prend la premiere annonce active qui a une image
+// et un prix mensuel exploitable. Choix stable d'un chargement a l'autre.
+
+function renderHowPhoto() {
+  const box = document.getElementById("how-photo");
+  if (!box) return;
+
+  const l = allData.find(x => x.status !== "removed"
+                           && x.images && x.images.length
+                           && contractNum(x.contract_monthly_raw) !== null);
+  if (!l) { box.innerHTML = ""; return; }
+
+  const n = contractNum(l.contract_monthly_raw);
+  const ville = dealCityLabel(l);
+
+  box.innerHTML = `
+    <img src="${esc(cityImage(l))}" alt="" loading="lazy" draggable="false"
+         oncontextmenu="return false" onerror="this.remove()">
+    <span class="how-caption">${esc(ville)} \u00b7 ${eurLabel(n)} \u20ac/mois</span>`;
+}
+
+function dealHTML(l) {
+  const price = wallPrice(l);
+  const ville = dealCityLabel(l);
+  const img = `<img src="${esc(cityImage(l))}" alt="" loading="lazy" draggable="false" oncontextmenu="return false" onerror="this.parentElement.querySelector('.deal-fallback')?.removeAttribute('hidden');this.remove()">`;
+
+  return `<a class="deal" href="/payant.html"
+    aria-label="Voir cette annonce à ${esc(ville)} sur la version payante">
+    <div class="deal-img">
+      ${img}
+      <div class="deal-fallback no-img" ${img ? "hidden" : ""}>\u{1F3E0}</div>
+      <span class="deal-price"><b>${eurLabel(price ? price.amount : null)} \u20ac</b><small>/mois</small></span>
     </div>
-  </div>`;
+    <div class="deal-body">
+      <div class="deal-route">${esc(ville)}</div>
+    </div>
+  </a>`;
 }
 
 // ── Pagination ────────────────────────────────────────────────────────
@@ -592,7 +1882,7 @@ function modalHTML(l) {
         ${hasWa?`<a class="mc mc-wa" href="https://api.whatsapp.com/send/?phone=${encodeURIComponent(String(l.whatsapp).replace(/\D/g,""))}&text&type=phone_number&app_absent=0" target="_blank" rel="noopener"><div class="mc-label">WhatsApp</div><div class="mc-val" style="display:flex;align-items:center;gap:6px">${WHATSAPP_ICON_SVG} ${esc(formatWhatsapp(l.whatsapp))}</div></a>`:""}
       </div>
     </div>` : "";})()}
-    <a class="modal-link" href="${esc(l.url)}" target="_blank" rel="noopener">Voir sur RentHub ↗</a>
+    ${l.url ? `<a class="modal-link" href="${esc(l.url)}" target="_blank" rel="noopener">Voir sur RentHub ↗</a>` : ""}
   `;
 }
 
