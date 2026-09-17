@@ -25,8 +25,6 @@
 
 .city-bar::-webkit-scrollbar { display: none; }
 
-.location-filters { display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
-
 .location-filter { display:flex; align-items:center; gap:8px; }
 
 .city-select {
@@ -355,6 +353,7 @@
     color: var(--muted); margin-bottom: 0;
   }
 
+.mc-val { color: var(--accent); font-weight: 700; font-size: 18px; }
 .mc-val.na { color: var(--muted); font-weight: 400; font-size: 12px; }
 
 .mc-room-label {
