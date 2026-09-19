@@ -25,6 +25,11 @@ function applyFilters(){
     if (selectedAmenities.size) {
       const amenities = a.amenities || [];
       for (const am of selectedAmenities) {
+        // LINE/WhatsApp ne sont pas des equipements (pas dans a.amenities):
+        // ce sont des champs de contact a part, testes ici comme des
+        // pseudo-equipements pour reutiliser les memes chips de filtre.
+        if (am === "LINE") { if (!a.line_id) return false; continue; }
+        if (am === "WhatsApp") { if (!a.whatsapp || String(a.whatsapp).replace(/\D/g, "").length < 5) return false; continue; }
         if (!amenities.includes(am)) return false;
       }
     }
@@ -39,8 +44,6 @@ function applyFilters(){
 
 async function loadAds(){
   const limit = 500;
-  let offset = 0;
-  const data = [];
   // /resultats (tunnel /789) declare LOCATION_QUERY ("province=Bangkok" ou
   // "district=Bang Lamung") avant d'appeler loadAds(): meme principe que
   // CITY.query dans city-map.js, applique ici en plus du filtre budget/duree
@@ -48,23 +51,24 @@ async function loadAds(){
   // nationale inchangee.
   const locationQuery = typeof LOCATION_QUERY !== "undefined" && LOCATION_QUERY ? `${LOCATION_QUERY}&` : "";
 
+  async function fetchBatch(offset) {
+    const r = await fetch(`${API}/listings?${locationQuery}status=active&limit=${limit}&offset=${offset}`);
+    if (!r.ok) throw new Error(r.status);
+    const batch = await r.json();
+    if (!Array.isArray(batch)) throw new Error("Réponse /listings invalide");
+    return batch;
+  }
+
+  let first;
   try {
-    while (true) {
-      const r = await fetch(`${API}/listings?${locationQuery}status=active&limit=${limit}&offset=${offset}`);
-      if (!r.ok) throw new Error(r.status);
-      const batch = await r.json();
-      if (!Array.isArray(batch)) throw new Error("Réponse /listings invalide");
-      data.push(...batch);
-      if (batch.length < limit) break;
-      offset += limit;
-    }
+    first = await fetchBatch(0);
   } catch (e) {
     document.getElementById("leaflet-map").innerHTML =
       `<div class="empty">Impossible de charger les annonces pour le moment.<br><br>Le serveur met parfois une minute à démarrer : recharge la page dans quelques instants.</div>`;
     return;
   }
 
-  ads = data.filter(a => Number.isFinite(a.latitude) && Number.isFinite(a.longitude));
+  ads = first.filter(a => Number.isFinite(a.latitude) && Number.isFinite(a.longitude));
 
   if (!ads.length) {
     document.getElementById("leaflet-map").innerHTML = `<div class="empty">Aucune annonce géolocalisée.</div>`;
@@ -74,6 +78,26 @@ async function loadAds(){
   buildMap();
   setupFormFilters();
   applyFilters();
+
+  // Charge le reste en arriere-plan: la carte s'affiche des le premier lot
+  // au lieu d'attendre tout le catalogue.
+  if (first.length === limit) {
+    (async () => {
+      let offset = limit;
+      let last = first.length;
+      try {
+        while (last === limit) {
+          const batch = await fetchBatch(offset);
+          const geo = batch.filter(a => Number.isFinite(a.latitude) && Number.isFinite(a.longitude));
+          ads.push(...geo);
+          addMarkersFor(geo);
+          applyFilters();
+          last = batch.length;
+          offset += limit;
+        }
+      } catch (e) { console.error(e); }
+    })();
+  }
 }
 
 // ── Popup riche + modale (extrait de carte-thailande.html: /resultats,
@@ -205,18 +229,11 @@ async function loadPopupPhotos(ad){
   paint(detailCache[ad.id]);
 }
 
-function buildMap(){
-  leafletMap = L.map("leaflet-map", { zoomControl: false });
-  L.control.zoom({ position: "topright" }).addTo(leafletMap);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: "&copy; OpenStreetMap contributors",
-    maxZoom: 19,
-  }).addTo(leafletMap);
-
-  clusterGroup = L.markerClusterGroup({ maxClusterRadius: 50 });
-  leafletMap.addLayer(clusterGroup);
-
-  ads.forEach(ad => {
+// Cree les marqueurs Leaflet pour une liste d'annonces sans toucher a la
+// carte/au clusterGroup (utilise pour le rendu initial et pour les lots
+// charges en arriere-plan par loadAds()).
+function addMarkersFor(list){
+  list.forEach(ad => {
     // Visiteur non connecte: l'API decale la position et le signale par
     // location_approx (main.py::_approximate_position). Comme Airbnb, on
     // dessine alors une zone plutot qu'un point; le rayon doit rester
@@ -235,6 +252,20 @@ function buildMap(){
     marker.on("popupopen", () => loadPopupPhotos(ad));
     markersById[ad.id] = marker;
   });
+}
+
+function buildMap(){
+  leafletMap = L.map("leaflet-map", { zoomControl: false });
+  L.control.zoom({ position: "topright" }).addTo(leafletMap);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors",
+    maxZoom: 19,
+  }).addTo(leafletMap);
+
+  clusterGroup = L.markerClusterGroup({ maxClusterRadius: 50 });
+  leafletMap.addLayer(clusterGroup);
+
+  addMarkersFor(ads);
 
   const bounds = L.latLngBounds(ads.map(a => [a.latitude, a.longitude]));
   leafletMap.fitBounds(bounds, { padding: [30, 30] });
@@ -290,39 +321,17 @@ function modalHTML(l) {
       ${contractVal(l.contract_3_month_raw) !== "—" ? `<span class="badge badge-term-3" style="position:static;display:inline-block">3 MOIS</span>` : ""}
       ${contractVal(l.contract_6_month_raw) !== "—" ? `<span class="badge badge-term-6" style="position:static;display:inline-block">6 MOIS</span>` : ""}
     </div>
-    ${mapsUrl ? `
-    <div>
-      <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap">
-        <a class="modal-link" style="padding:6px 12px;font-size:11px" href="${esc(mapsUrl)}" target="_blank" rel="noopener">📍 Google Maps ↗</a>
-      </div>
-      ${embedUrl ? `<iframe src="${esc(embedUrl)}" style="width:100%;height:220px;border:0;border-radius:8px;margin-top:10px" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Carte de localisation"></iframe>` : ""}
-      ${precisionLabel ? `<div style="font-size:10px;color:var(--muted);margin-top:6px">${precisionLabel}</div>` : ""}
-    </div>` : ""}
     <div>
       <div class="section-head">${esc(contractsSectionTitle(l))}</div>
       <div class="modal-contracts">
         ${renderContractsHTML(l)}
       </div>
     </div>
-    ${l.deposit || (l.electric_price && l.electric_price !== "Please contact") || amenities.length ? `
-    <div>
-      <div class="section-head">Description</div>
-      <div class="modal-contracts">
-        <div class="mc"><div class="mc-label">Deposit</div><div class="mc-val${l.deposit ? "" : " na"}">${l.deposit ? esc(l.deposit) : "Non communiqué"}</div></div>
-        ${l.electric_price && l.electric_price !== "Please contact" ? `<div class="mc"><div class="mc-label">Electric price</div><div class="mc-val">${esc(l.electric_price)}</div></div>` : ""}
-        <div class="mc"><div class="mc-label">Air Conditioner</div><div class="mc-val${amenities.includes("Air Conditioner") ? "" : " na"}">${amenities.includes("Air Conditioner") ? "YES" : "NO"}</div></div>
-      </div>
-    </div>` : ""}
-    ${amenities.length ? `
-    <div>
-      <div class="section-head">Équipements</div>
-      <div class="modal-amenities">${amenities.map(a=>`<span class="amenity">${esc(AMENITY_ICONS[a] || a)}</span>`).join("")}</div>
-    </div>` : ""}
     ${(()=>{const hasWa=hasRealWhatsapp(l.whatsapp);return l.phone||l.line_id||hasWa ? `
     <div>
       <div class="section-head">Contact</div>
       <div class="modal-contracts">
-        ${l.phone?`<div class="mc"><div class="mc-label">Téléphone</div><div class="mc-val">📞 ${esc(l.phone)}</div></div>`:""}
+        ${l.phone?`<a class="mc mc-phone" href="tel:${encodeURIComponent(String(l.phone).replace(/[^+\d]/g,""))}"><div class="mc-label">Téléphone</div><div class="mc-val">📞 ${esc(l.phone)}</div></a>`:""}
         ${l.line_id?(()=>{
           // line_verified===false : identifiant deja confirme inexistant par
           // scripts/verify_line_ids.py -- on route vers line.me/ti/p/~<id>
@@ -335,8 +344,30 @@ function modalHTML(l) {
         ${hasWa?`<a class="mc mc-wa" href="https://api.whatsapp.com/send/?phone=${encodeURIComponent(String(l.whatsapp).replace(/\D/g,""))}&text&type=phone_number&app_absent=0" target="_blank" rel="noopener"><div class="mc-label">WhatsApp</div><div class="mc-val" style="display:flex;align-items:center;gap:6px">${WHATSAPP_ICON_SVG} ${esc(formatWhatsapp(l.whatsapp))}</div></a>`:""}
       </div>
     </div>` : "";})()}
+    ${l.deposit || (l.electric_price && l.electric_price !== "Please contact") || amenities.length ? `
+    <div>
+      <div class="section-head">Infos pratiques</div>
+      <div class="modal-contracts">
+        <div class="mc mc-compact"><div class="mc-label">Deposit</div><div class="mc-val${l.deposit ? "" : " na"}">${l.deposit ? esc(l.deposit) : "Non communiqué"}</div></div>
+        ${l.electric_price && l.electric_price !== "Please contact" ? `<div class="mc mc-compact"><div class="mc-label">Electric price</div><div class="mc-val">${esc(l.electric_price)}</div></div>` : ""}
+        <div class="mc mc-compact"><div class="mc-label">Air Conditioner</div><div class="mc-val${amenities.includes("Air Conditioner") ? "" : " na"}">${amenities.includes("Air Conditioner") ? "YES" : "NO"}</div></div>
+      </div>
+    </div>` : ""}
+    ${amenities.length ? `
+    <div>
+      <div class="section-head">Équipements</div>
+      <div class="modal-amenities">${amenities.map(a=>`<span class="amenity">${esc(AMENITY_ICONS[a] || a)}</span>`).join("")}</div>
+    </div>` : ""}
+    ${mapsUrl ? `
+    <div>
+      <div style="display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap">
+        <a class="modal-link" style="padding:6px 12px;font-size:11px" href="${esc(mapsUrl)}" target="_blank" rel="noopener">📍 Google Maps ↗</a>
+      </div>
+      ${embedUrl ? `<iframe src="${esc(embedUrl)}" style="width:100%;height:220px;border:0;border-radius:8px;margin-top:10px" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Carte de localisation"></iframe>` : ""}
+      ${precisionLabel ? `<div style="font-size:10px;color:var(--muted);margin-top:6px">${precisionLabel}</div>` : ""}
+    </div>` : ""}
     ${l.url
-      ? `<a class="modal-link" href="${esc(l.url)}" target="_blank" rel="noopener">Voir sur RentHub ↗</a>`
+      ? `<a class="modal-link" href="${safeHref(l.url)}" target="_blank" rel="noopener">Voir sur RentHub ↗</a>`
       : `<a class="modal-link" href="/payant.html?listing=${encodeURIComponent(l.id)}">🔒 Débloquer l'annonce d'origine</a>`}
   `;
 }
