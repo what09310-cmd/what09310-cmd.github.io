@@ -19,15 +19,26 @@
       <div class="hero">
         <p class="logo" lang="vi">Quán ăn</p>
         <h1>Trouver où manger, tout près</h1>
-        <p class="lead">Ta position sert seulement à chercher les restaurants autour de toi. Elle n’est jamais enregistrée.</p>
+        <p class="lead">Tape le lieu où tu es. Il sert seulement à chercher les restaurants autour, et il n’est jamais enregistré.</p>
       </div>
-      <button id="btn-locate" class="btn primary big" type="button">Me localiser</button>
+      <form id="place-form" novalidate>
+        <label for="place" class="label">Où es-tu ?</label>
+        <input id="place" name="place" class="text-input" type="text" autocomplete="off" enterkeyhint="search"
+               placeholder="Ville, quartier ou adresse" aria-describedby="place-error">
+        <p id="place-error" class="error" role="alert"></p>
+        <button id="btn-place" class="btn primary big full" type="submit">Chercher ce lieu</button>
+      </form>
       <p id="home-status" class="status" role="status"></p>
+      <div id="place-choices" hidden>
+        <p class="label">Lequel ?</p>
+        <ul id="place-list" class="choices"></ul>
+      </div>
     </section>
 
     <!-- Rayon + budget -->
     <section id="screen-search" class="screen" hidden>
       <h1>Ta recherche</h1>
+      <p class="place-current">Autour de <strong id="place-label" lang="vi"></strong></p>
       <form id="search-form" novalidate>
         <label for="budget" class="label">Ton budget</label>
         <div class="budget-field">
@@ -45,7 +56,7 @@
           <button type="button" class="btn radius" value="10">10 km</button>
         </div>
       </form>
-      <button id="btn-relocate" class="btn link" type="button">Me relocaliser</button>
+      <button id="btn-change-place" class="btn link" type="button">Changer de lieu</button>
     </section>
 
     <!-- Chargement -->
