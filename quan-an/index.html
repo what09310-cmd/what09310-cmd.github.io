@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Quán ăn — restaurants près de moi</title>
+  <meta name="description" content="Trouver un restaurant au Vietnam et montrer sa commande en vietnamien.">
+  <meta name="theme-color" content="#c2410c">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+  <main id="app" aria-live="polite">
+    <!-- Accueil -->
+    <section id="screen-home" class="screen">
+      <div class="hero">
+        <p class="logo" lang="vi">Quán ăn</p>
+        <h1>Trouver où manger, tout près</h1>
+        <p class="lead">Ta position sert seulement à chercher les restaurants autour de toi. Elle n’est jamais enregistrée.</p>
+      </div>
+      <button id="btn-locate" class="btn primary big" type="button">Me localiser</button>
+      <p id="home-status" class="status" role="status"></p>
+    </section>
+
+    <!-- Rayon + budget -->
+    <section id="screen-search" class="screen" hidden>
+      <h1>Ta recherche</h1>
+      <form id="search-form" novalidate>
+        <label for="budget" class="label">Ton budget</label>
+        <div class="budget-field">
+          <input id="budget" name="budget" type="text" inputmode="numeric" autocomplete="off"
+                 placeholder="Montant en dongs" aria-describedby="budget-error">
+          <span class="suffix" aria-hidden="true">₫</span>
+        </div>
+        <p id="budget-error" class="error" role="alert"></p>
+
+        <p class="label" id="radius-label">Chercher dans un rayon de</p>
+        <div class="radius-grid" role="group" aria-labelledby="radius-label">
+          <button type="button" class="btn radius" value="1">1 km</button>
+          <button type="button" class="btn radius" value="3">3 km</button>
+          <button type="button" class="btn radius" value="5">5 km</button>
+          <button type="button" class="btn radius" value="10">10 km</button>
+        </div>
+      </form>
+      <button id="btn-relocate" class="btn link" type="button">Me relocaliser</button>
+    </section>
+
+    <!-- Chargement -->
+    <section id="screen-loading" class="screen center" hidden>
+      <div class="spinner" aria-hidden="true"></div>
+      <p id="loading-text" class="status">Recherche…</p>
+    </section>
+
+    <!-- Résultats -->
+    <section id="screen-results" class="screen" hidden>
+      <header class="results-head">
+        <h1 id="results-title">Résultats</h1>
+        <button id="btn-new" class="btn secondary" type="button">Nouvelle recherche</button>
+      </header>
+      <div id="results-notice"></div>
+      <ol id="results-list" class="cards"></ol>
+    </section>
+
+    <!-- Erreur -->
+    <section id="screen-error" class="screen center" hidden>
+      <h1 id="error-title">Oups</h1>
+      <p id="error-text" class="lead"></p>
+      <button id="btn-error-retry" class="btn primary big" type="button">Réessayer</button>
+      <div id="error-saved"></div>
+    </section>
+  </main>
+
+  <!-- Plein écran « Montrer » -->
+  <div id="show" class="show" role="dialog" aria-modal="true" aria-labelledby="show-name" hidden>
+    <p id="show-name" class="show-name" lang="vi"></p>
+    <p id="show-phrase" class="show-phrase" lang="vi"></p>
+    <button id="btn-close" class="btn secondary big" type="button">Fermer</button>
+  </div>
+
+  <template id="card-template">
+    <li class="card">
+      <p class="card-name" lang="vi"></p>
+      <p class="card-meta"><span class="card-distance"></span> · <span class="card-type"></span></p>
+      <div class="card-actions">
+        <a class="btn secondary card-route" target="_blank" rel="noopener">Itinéraire</a>
+        <button class="btn primary card-show" type="button">Montrer</button>
+      </div>
+    </li>
+  </template>
+
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>
