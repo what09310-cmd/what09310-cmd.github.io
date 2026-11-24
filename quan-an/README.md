@@ -1,9 +1,9 @@
 # Quán ăn — restaurants près de moi
 
-PWA gratuite pour trouver où manger au Vietnam sans parler vietnamien : GPS, rayon (1/3/5/10 km), budget en dongs, liste triée par distance, bouton « Montrer » qui affiche la commande en vietnamien en plein écran.
+PWA gratuite pour trouver où manger au Vietnam sans parler vietnamien : lieu tapé (ville, quartier, adresse), rayon (1/3/5/10 km), budget en dongs, liste triée par distance, bouton « Montrer » qui affiche la commande en vietnamien en plein écran.
 
-- Aucune dépendance, aucun serveur, aucune clé API. Données OpenStreetMap via Overpass, appelé depuis le navigateur.
-- La position n’est envoyée qu’à Overpass et n’est jamais stockée. Le budget n’est jamais stocké.
+- Aucune dépendance, aucun serveur, aucune clé API. Données OpenStreetMap : Nominatim pour trouver le lieu tapé, Overpass pour les restaurants, appelés depuis le navigateur.
+- Pas de GPS. Le lieu tapé n’est envoyé qu’à Nominatim, ses coordonnées qu’à Overpass, et rien n’est stocké. Le budget n’est jamais stocké.
 - Seuls les derniers résultats (sans budget ni position) sont gardés dans `localStorage` (`lastResults`) pour le mode dégradé.
 
 ## Tests
@@ -14,7 +14,7 @@ npm test        # = node --test (Node 20+)
 
 ## Lancer en local
 
-N’importe quel serveur statique, par exemple `python3 -m http.server 8000`, puis http://localhost:8000. Le GPS exige HTTPS en dehors de `localhost`.
+N’importe quel serveur statique, par exemple `python3 -m http.server 8000`, puis http://localhost:8000. 
 
 ## Mise en ligne
 
@@ -24,7 +24,7 @@ Site statique : publier le dossier tel quel (GitHub Pages depuis la branche prin
 
 ## Test sur téléphone réel
 
-1. Ouvrir l’URL HTTPS, « Me localiser », accepter le GPS.
+1. Ouvrir l’URL, taper « Hậu Nghĩa » (ou « hau nghia »), « Chercher ce lieu ».
 2. Budget vide ou `abc` puis un rayon : « Entre ton budget en dongs », pas de recherche.
 3. Budget `35.000`, rayon 3 km : liste en moins de 15 s en 4G.
 4. « Montrer » : nom + « Cho tôi một đĩa cơm chiên, tôi có 35.000 đồng ».

@@ -1,5 +1,5 @@
 // Service worker : cache-first sur les fichiers de l'appli, jamais sur Overpass.
-const CACHE = 'quan-an-v1';
+const CACHE = 'quan-an-v2';
 const APP_FILES = [
   './',
   './index.html',
@@ -10,6 +10,7 @@ const APP_FILES = [
   './src/overpass.js',
   './src/storage.js',
   './src/format.js',
+  './src/geocode.js',
   './src/style.css',
   './icons/icon-192.png',
   './icons/icon-512.png',

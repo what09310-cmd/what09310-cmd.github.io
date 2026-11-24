@@ -1,6 +1,7 @@
 import { directionsUrl, nextRadius } from './geo.js';
 import { parseBudget, orderPhrase } from './phrase.js';
 import { fetchRestaurants } from './overpass.js';
+import { geocode } from './geocode.js';
 import { saveLastResults, loadLastResults } from './storage.js';
 import { formatKm, typeLabel, formatSavedDate } from './format.js';
 
@@ -13,7 +14,8 @@ function storage() {
 
 // État en mémoire uniquement : rien de cela n'est stocké (sauf lastResults, sans budget ni position).
 const state = {
-  position: null, // { lat, lon }
+  position: null, // { lat, lon } du lieu tapé
+  placeLabel: '',
   budget: null,   // nombre de dongs de la recherche en cours
   radiusKm: null,
   lastAction: null, // pour « Réessayer »
@@ -33,37 +35,63 @@ function el(tag, props = {}, children = []) {
   return node;
 }
 
-/* ---------- Géolocalisation ---------- */
+/* ---------- Lieu tapé (remplace le GPS) ---------- */
 
-const GEO_MESSAGES = {
-  1: 'Tu as refusé l’accès à ta position. Autorise la localisation pour ce site dans les réglages du navigateur, puis réessaie.',
-  2: 'Ta position est introuvable pour l’instant. Vérifie que le GPS est activé, puis réessaie.',
-  3: 'La localisation a pris trop de temps. Mets-toi près d’une fenêtre ou dehors, puis réessaie.',
-};
+function openHome() {
+  state.lastAction = null;
+  $('place-choices').hidden = true;
+  $('home-status').textContent = '';
+  show('home');
+  $('place').focus();
+}
 
-function locate() {
-  state.lastAction = locate;
-  if (!('geolocation' in navigator)) {
-    showError('Position indisponible', 'Ce navigateur ne permet pas la localisation.');
+function setPlaceError(text) {
+  $('place-error').textContent = text;
+  if (text) $('place').setAttribute('aria-invalid', 'true');
+  else $('place').removeAttribute('aria-invalid');
+}
+
+function choosePlace(place) {
+  state.position = { lat: place.lat, lon: place.lon };
+  state.placeLabel = place.label;
+  openSearch();
+}
+
+async function findPlace() {
+  const query = $('place').value.trim();
+  $('place-choices').hidden = true;
+  if (!query) {
+    setPlaceError('Entre un lieu');
+    $('place').focus();
     return;
   }
-  show('home');
-  $('home-status').textContent = 'Localisation en cours…';
-  $('btn-locate').disabled = true;
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      $('btn-locate').disabled = false;
-      $('home-status').textContent = '';
-      state.position = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-      openSearch();
-    },
-    (err) => {
-      $('btn-locate').disabled = false;
-      $('home-status').textContent = '';
-      showError('Position indisponible', GEO_MESSAGES[err.code] ?? GEO_MESSAGES[2]);
-    },
-    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-  );
+  setPlaceError('');
+  $('place').blur();
+  $('btn-place').disabled = true;
+  $('home-status').textContent = 'Recherche du lieu…';
+  try {
+    const places = await geocode(query);
+    $('home-status').textContent = '';
+    if (places.length === 0) {
+      setPlaceError('Lieu introuvable. Essaie avec le nom de la ville ou du quartier.');
+    } else if (places.length === 1) {
+      choosePlace(places[0]);
+    } else {
+      $('place-list').replaceChildren(
+        ...places.map((p) => {
+          const btn = el('button', { type: 'button', className: 'btn secondary', textContent: p.label, lang: 'vi' });
+          btn.addEventListener('click', () => choosePlace(p));
+          return el('li', {}, [btn]);
+        })
+      );
+      $('place-choices').hidden = false;
+    }
+  } catch {
+    $('home-status').textContent = '';
+    setPlaceError('La recherche de lieux ne répond pas. Vérifie ta connexion, puis réessaie.');
+  } finally {
+    $('btn-place').disabled = false;
+  }
 }
 
 /* ---------- Écran rayon + budget ---------- */
@@ -75,6 +103,7 @@ function openSearch() {
   input.value = '';
   input.removeAttribute('aria-invalid');
   $('budget-error').textContent = '';
+  $('place-label').textContent = state.placeLabel;
   show('search');
 }
 
@@ -164,7 +193,7 @@ function showOverpassError() {
     el('div', { className: 'saved' }, [
       el('p', {
         className: 'notice',
-        textContent: `Résultats enregistrés du ${formatSavedDate(saved.savedAt)} (rayon ${saved.radiusKm} km, distances depuis ta position d’alors)`,
+        textContent: `Résultats enregistrés du ${formatSavedDate(saved.savedAt)} (rayon ${saved.radiusKm} km, distances depuis le lieu d’alors)`,
       }),
       list,
     ])
@@ -190,10 +219,11 @@ function closeShow() {
 
 /* ---------- Branchements ---------- */
 
-$('btn-locate').addEventListener('click', locate);
-$('btn-relocate').addEventListener('click', locate);
+$('place-form').addEventListener('submit', (e) => { e.preventDefault(); findPlace(); });
+$('place').addEventListener('input', () => setPlaceError(''));
+$('btn-change-place').addEventListener('click', openHome);
 $('btn-new').addEventListener('click', openSearch);
-$('btn-error-retry').addEventListener('click', () => (state.lastAction ?? locate)());
+$('btn-error-retry').addEventListener('click', () => (state.lastAction ?? openHome)());
 $('btn-close').addEventListener('click', closeShow);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('show').hidden) closeShow(); });
 $('search-form').addEventListener('submit', (e) => { e.preventDefault(); $('budget').blur(); });
