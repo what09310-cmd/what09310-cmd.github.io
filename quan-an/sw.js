@@ -1,5 +1,5 @@
 // Service worker : cache-first sur les fichiers de l'appli, jamais sur Overpass.
-const CACHE = 'quan-an-v2';
+const CACHE = 'quan-an-v3';
 const APP_FILES = [
   './',
   './index.html',
@@ -17,7 +17,9 @@ const APP_FILES = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(APP_FILES)).then(() => self.skipWaiting()));
+  event.waitUntil(caches.open(CACHE)
+      // cache: 'reload' contourne le cache HTTP du navigateur, sinon une mise à jour peut mettre en cache d'anciens fichiers.
+      .then((c) => c.addAll(APP_FILES.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (event) => {
