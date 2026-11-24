@@ -1,5 +1,5 @@
-// Service worker : cache-first sur les fichiers de l'appli, jamais sur Overpass.
-const CACHE = 'quan-an-v5';
+// Service worker : réseau d'abord avec copie de secours pour le hors-ligne, jamais pour Overpass ni Nominatim.
+const CACHE = 'quan-an-v6';
 const APP_FILES = [
   './',
   './index.html',
@@ -30,22 +30,43 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Réseau d'abord : en ligne, on sert toujours la dernière version publiée (et on met le cache à jour).
+// Hors ligne, ou si le réseau ne répond pas en 4 s, on sert la copie en cache.
+const NETWORK_TIMEOUT_MS = 4000;
+
+function fromCache(req) {
+  return caches.match(req, { ignoreSearch: true }).then(
+    (hit) => hit || (req.mode === 'navigate' ? caches.match('./index.html') : undefined)
+  );
+}
+
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  // Uniquement les fichiers de l'appli (même origine). Overpass, Google Maps, etc. passent au réseau.
+  // Uniquement les fichiers de l'appli (même origine). Overpass, Nominatim, Google Maps passent au réseau.
   if (url.origin !== self.location.origin) return;
+
   event.respondWith(
-    caches.match(req, { ignoreSearch: true }).then((hit) => {
-      if (hit) return hit;
-      return fetch(req).then((res) => {
-        if (res.ok) {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(req, copy));
-        }
-        return res;
-      }).catch(() => (req.mode === 'navigate' ? caches.match('./index.html') : Response.error()));
+    new Promise((resolve) => {
+      let settled = false;
+      const done = (res) => { if (!settled && res) { settled = true; resolve(res); } };
+
+      const timer = setTimeout(() => fromCache(req).then(done), NETWORK_TIMEOUT_MS);
+
+      fetch(req, { cache: 'no-cache' })
+        .then((res) => {
+          clearTimeout(timer);
+          if (res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => c.put(req, copy));
+          }
+          done(res);
+        })
+        .catch(() => {
+          clearTimeout(timer);
+          fromCache(req).then((hit) => done(hit || Response.error()));
+        });
     })
   );
 });

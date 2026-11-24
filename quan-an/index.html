@@ -25,6 +25,7 @@
         <label for="place" class="label">Où es-tu ?</label>
         <input id="place" name="place" class="text-input" type="text" autocomplete="off" enterkeyhint="search"
                placeholder="Ville, quartier ou adresse" aria-describedby="place-error">
+        <p class="hint">Ex. : Hậu Nghĩa, Quận 1, ou des coordonnées 10.89, 106.39</p>
         <p id="place-error" class="error" role="alert"></p>
         <button id="btn-place" class="btn primary big full" type="submit">Chercher ce lieu</button>
       </form>
@@ -103,6 +104,13 @@
     </li>
   </template>
 
+  <div id="fatal" class="fatal" role="alert" hidden>
+    Un problème est survenu. <button type="button" class="btn secondary" onclick="location.reload()">Recharger la page</button>
+  </div>
+  <script>
+    window.addEventListener('error', function () { var f = document.getElementById('fatal'); if (f) f.hidden = false; });
+  </script>
+  <script nomodule>document.getElementById('fatal').hidden = false; document.getElementById('fatal').firstChild.textContent = 'Ce navigateur est trop ancien pour l’appli. ';</script>
   <script type="module" src="src/app.js"></script>
 </body>
 </html>
