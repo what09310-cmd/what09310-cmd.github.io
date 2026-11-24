@@ -18,6 +18,11 @@ export function directionsUrl(dest) {
   return `https://www.google.com/maps/dir/?api=1&destination=${dest.lat},${dest.lon}`;
 }
 
+/** Lien Google Maps qui montre le lieu {lat, lon}. */
+export function mapsUrl(dest) {
+  return `https://www.google.com/maps/search/?api=1&query=${dest.lat},${dest.lon}`;
+}
+
 /** Rayon suivant dans la suite 1, 3, 5, 10 ; null après 10. */
 export function nextRadius(km) {
   const next = RADII.find((r) => r > km);
