@@ -75,6 +75,7 @@ h1 { font-size: 1.6rem; line-height: 1.2; margin: 0; }
 .btn.full { width: 100%; margin-top: 8px; }
 .choices { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
 .choices .btn { width: 100%; justify-content: flex-start; text-align: left; font-weight: 500; line-height: 1.3; }
+.hint { color: var(--muted); font-size: .9rem; margin: 6px 0 0; }
 .place-current { margin: 0; color: var(--muted); overflow-wrap: anywhere; }
 .place-current strong { color: var(--text); }
 
@@ -158,3 +159,10 @@ h1 { font-size: 1.6rem; line-height: 1.2; margin: 0; }
 .show-name { font-size: clamp(2rem, 9vw, 3.4rem); font-weight: 800; line-height: 1.15; margin: 0; overflow-wrap: anywhere; }
 .show-phrase { font-size: clamp(1.7rem, 7.5vw, 2.8rem); font-weight: 600; line-height: 1.3; margin: 0; }
 .show .btn.secondary { background: #f3f3f3; color: #000; border-color: #d4d4d4; }
+
+.fatal {
+  position: fixed; left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); z-index: 20;
+  background: var(--error); color: #fff; font-weight: 600;
+  border-radius: var(--radius); padding: 12px 14px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
