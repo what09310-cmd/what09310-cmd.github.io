@@ -1,5 +1,5 @@
 // Service worker : cache-first sur les fichiers de l'appli, jamais sur Overpass.
-const CACHE = 'quan-an-v3';
+const CACHE = 'quan-an-v4';
 const APP_FILES = [
   './',
   './index.html',
