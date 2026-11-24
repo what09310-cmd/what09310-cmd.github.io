@@ -1,4 +1,4 @@
-import { directionsUrl, nextRadius } from './geo.js';
+import { directionsUrl, mapsUrl, nextRadius } from './geo.js';
 import { parseBudget, orderPhrase } from './phrase.js';
 import { fetchRestaurants } from './overpass.js';
 import { geocode } from './geocode.js';
@@ -142,6 +142,7 @@ function renderCard(r) {
   card.querySelector('.card-name').textContent = r.name;
   card.querySelector('.card-distance').textContent = formatKm(r.distanceKm);
   card.querySelector('.card-type').textContent = typeLabel(r.type);
+  card.querySelector('.card-map').href = mapsUrl(r);
   card.querySelector('.card-route').href = directionsUrl(r);
   card.querySelector('.card-show').addEventListener('click', () => openShow(r.name));
   return card;
